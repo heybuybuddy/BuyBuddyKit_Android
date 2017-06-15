@@ -1,4 +1,7 @@
-package co.buybuddy.android.http.model;
+package co.buybuddy.android.interfaces;
+
+import co.buybuddy.android.responses.BuyBuddyApiError;
+import co.buybuddy.android.responses.BuyBuddyApiObject;
 
 /**
  * Created by furkan on 6/13/17.

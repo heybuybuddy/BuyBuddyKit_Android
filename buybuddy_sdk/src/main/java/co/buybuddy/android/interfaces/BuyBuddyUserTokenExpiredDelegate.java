@@ -1,4 +1,4 @@
-package co.buybuddy.android.http;
+package co.buybuddy.android.interfaces;
 
 /**
  * Created by furkan on 6/13/17.

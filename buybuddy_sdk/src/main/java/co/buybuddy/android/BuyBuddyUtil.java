@@ -1,4 +1,4 @@
-package co.buybuddy.android.http;
+package co.buybuddy.android;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -23,7 +23,7 @@ final class BuyBuddyUtil {
     }
 
     static SharedPreferences getSP(){
-        return BuyBuddy.getSharedInstance().getContext()
+        return BuyBuddy.getInstance().getContext()
                 .getSharedPreferences(BUYBUDDY_SP_PREFIX, Context.MODE_PRIVATE);
     }
 
@@ -38,5 +38,9 @@ final class BuyBuddyUtil {
 
     public static void setDEBUG(boolean debug){
         DEBUG = debug;
+    }
+
+    static String w(Object obj){ // Write if object is not null
+        return obj != null ? obj.toString() : "__NULL__";
     }
 }

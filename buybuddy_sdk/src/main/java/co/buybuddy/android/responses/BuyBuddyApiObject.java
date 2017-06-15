@@ -1,6 +1,4 @@
-package co.buybuddy.android.http.model;
-
-import co.buybuddy.android.BuyBuddy;
+package co.buybuddy.android.responses;
 
 /**
  * Created by furkan on 6/13/17.

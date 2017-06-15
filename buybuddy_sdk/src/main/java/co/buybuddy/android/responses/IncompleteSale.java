@@ -1,4 +1,4 @@
-package co.buybuddy.android.http.model;
+package co.buybuddy.android.responses;
 
 /**
  * Created by furkan on 6/14/17.

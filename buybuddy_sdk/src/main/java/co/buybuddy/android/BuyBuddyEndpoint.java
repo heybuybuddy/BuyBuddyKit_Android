@@ -1,4 +1,4 @@
-package co.buybuddy.android.http;
+package co.buybuddy.android;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -7,11 +7,6 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
-
-
-import static co.buybuddy.android.http.HttpMethodBB.GET;
-import static co.buybuddy.android.http.HttpMethodBB.POST;
-import static co.buybuddy.android.http.HttpMethodBB.PUT;
 
 /**
  * Created by furkan on 6/13/17.
@@ -53,10 +48,10 @@ class BuyBuddyEndpoint {
             return null;
         } else {
             switch (currentType){
-                case "GET" : currentMethod = GET; break;
-                case "POST" : currentMethod = POST; break;
-                case "PUT" : currentMethod = PUT; break;
-                default: currentMethod = GET;
+                case "GET" : currentMethod = HttpMethodBB.GET; break;
+                case "POST" : currentMethod = HttpMethodBB.POST; break;
+                case "PUT" : currentMethod = HttpMethodBB.PUT; break;
+                default: currentMethod = HttpMethodBB.GET;
             }
         }
 
@@ -93,7 +88,7 @@ class BuyBuddyEndpoint {
     public static String getBaseUrl() {
 
         return "https://" +
-                (BuyBuddyApi.getSharedInstance().isSandBoxMode() ?
+                (BuyBuddy.getInstance().api.isSandBoxMode() ?
                         sandBoxPrefix : productionPrefix) + ".buybuddy.co";
 
     }

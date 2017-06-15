@@ -1,6 +1,8 @@
 package co.buybuddy.android;
 
 import android.content.Context;
+import android.content.Intent;
+import android.support.annotation.NonNull;
 
 /**
  * Created by furkan on 6/12/17.
@@ -8,36 +10,34 @@ import android.content.Context;
  */
 
 public class BuyBuddy {
-    private Context mContext;
-
+    private static Context mContext;
     private static BuyBuddy _instance;
+    public BuyBuddyApi api;
 
     private BuyBuddy(){
-
+        api = new BuyBuddyApi();
     }
 
-    public void setContext(Context context){
+    public static void setContext(Context context){
         mContext = context;
     }
 
-    public Context getContext(){
+    public static Context getContext(){
         return mContext;
     }
 
-    public static BuyBuddy getSharedInstance() throws RuntimeException{
-        if (_instance == null){
-            throw new RuntimeException("You should first initialize.");
+    public static BuyBuddy getInstance(){
+        synchronized (Object.class){
+            return _instance;
         }
-        return _instance;
     }
 
-    public static void sdkInitialize(Context context){
+    public static void sdkInitialize(@NonNull Context context){
         if (_instance == null){
-            synchronized (Object.class) {
-                _instance = new BuyBuddy();
-            }
+            mContext = context;
+            _instance = new BuyBuddy();
         }
 
-        _instance.mContext = context;
+        mContext.startService(new Intent(getContext(), HitagScanService.class));
     }
 }

@@ -1,4 +1,4 @@
-package co.buybuddy.android.http;
+package co.buybuddy.android;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -9,15 +9,14 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Map;
 
-import co.buybuddy.android.http.model.BuyBuddyApiCallback;
-import co.buybuddy.android.http.model.BuyBuddyApiError;
-import co.buybuddy.android.http.model.BuyBuddyApiObject;
-import co.buybuddy.android.http.model.BuyBuddyBase;
-import co.buybuddy.android.http.model.IncompleteSale;
-import co.buybuddy.android.http.model.OrderDelegate;
-import co.buybuddy.android.http.model.OrderDelegateDetail;
+import co.buybuddy.android.interfaces.BuyBuddyApiCallback;
+import co.buybuddy.android.responses.BuyBuddyApiError;
+import co.buybuddy.android.responses.BuyBuddyApiObject;
+import co.buybuddy.android.responses.BuyBuddyBase;
+import co.buybuddy.android.responses.IncompleteSale;
+import co.buybuddy.android.responses.OrderDelegate;
+import co.buybuddy.android.responses.OrderDelegateDetail;
 import co.buybuddy.android.model.BuyBuddyItem;
-import co.buybuddy.android.model.CollectedHitag;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -45,16 +44,6 @@ public final class BuyBuddyApi {
                 .addInterceptor(authorization)
                 .build();
     }
-
-    public static BuyBuddyApi getSharedInstance() {
-        if (_instance == null) {
-            _instance = new BuyBuddyApi();
-            return _instance;
-        } else {
-            return _instance;
-        }
-    }
-
 
     public BuyBuddyApi setSandBoxMode(boolean isSandBoxMode){
         this.isSandBoxMode = isSandBoxMode;
@@ -93,7 +82,7 @@ public final class BuyBuddyApi {
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
+            public void onResponse(Call call, Response response) {
                 String responseStr = null;
                 boolean error = false;
 
@@ -129,7 +118,7 @@ public final class BuyBuddyApi {
         });
     }
 
-    private <T> T call(Class<T> clazz, BuyBuddyHttpModel requestModel) throws BuyBuddyApiError, IOException {
+    private <T> BuyBuddyApiObject<T> call(Class<T> clazz, BuyBuddyHttpModel requestModel) throws BuyBuddyApiError, IOException {
 
         Request.Builder builder = new Request.Builder()
                 .url(requestModel.getUrl());
@@ -158,19 +147,20 @@ public final class BuyBuddyApi {
 
             try{
                 GsonBuilder gsonBuilder = new GsonBuilder();
-                BuyBuddyApiObject<T> responseObject = gsonBuilder.create().fromJson(responseStr, getType(BuyBuddyApiObject.class, clazz));
-                return responseObject.getData();
+                return gsonBuilder.create().fromJson(responseStr, getType(BuyBuddyApiObject.class, clazz));
             } catch (Exception ex) {
-                throw new BuyBuddyApiError("-0003", "JsonSyntaxException", response.code());
+                //throw new BuyBuddyApiError("-0003", "JsonSyntaxException", response.code());
+                return null;
             }
 
         } else{
 
             try{
-                BuyBuddyBase base = new Gson().fromJson(responseStr, BuyBuddyBase.class);
-                throw new BuyBuddyApiError(base.getErrors().getTraceCode() + "", base.getErrors().getTraceMessage(), response.code());
+                GsonBuilder gsonBuilder = new GsonBuilder();
+                return gsonBuilder.create().fromJson(responseStr, getType(BuyBuddyApiObject.class, clazz));
             }catch(JsonSyntaxException ex){
-                throw new BuyBuddyApiError("-0004", "JsonSyntaxException", response.code());
+                //throw new BuyBuddyApiError("-0004", "JsonSyntaxException", response.code());
+                return null;
             }
         }
     }
@@ -248,7 +238,7 @@ public final class BuyBuddyApi {
              delegate);
     }
 
-    BuyBuddyJwt getJwt(String token) throws BuyBuddyApiError, IOException {
+    BuyBuddyApiObject<BuyBuddyJwt> getJwt(String token) throws BuyBuddyApiError, IOException {
         return call(BuyBuddyJwt.class,
                     BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.Jwt, new ParameterMap().add("passphrase_submission", new ParameterMap()
                                                                                                                                     .add("passkey", token).getMap())));

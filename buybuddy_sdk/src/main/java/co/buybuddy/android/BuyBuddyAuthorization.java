@@ -1,8 +1,10 @@
-package co.buybuddy.android.http;
+package co.buybuddy.android;
 
 import java.io.IOException;
 
-import co.buybuddy.android.http.model.BuyBuddyApiError;
+import co.buybuddy.android.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.android.responses.BuyBuddyApiError;
+import co.buybuddy.android.responses.BuyBuddyApiObject;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -49,7 +51,7 @@ class BuyBuddyAuthorization implements Interceptor{
         Response response = chain.proceed(request); //perform request, here original request will be executed
 
         if (response.code() == 401) { //if unauthorized
-            synchronized (BuyBuddyApi.getSharedInstance().client) { //perform all 401 in sync blocks, to avoid multiply token updates
+            synchronized (BuyBuddy.getInstance().api.client) { //perform all 401 in sync blocks, to avoid multiply token updates
                 String currentJwt = tokenManager.getJwt(); //get currently stored token
 
                 if(currentJwt != null && currentJwt.equals(jwt)) { //compare current token with token that was stored before, if it was not updated - do update
@@ -75,10 +77,11 @@ class BuyBuddyAuthorization implements Interceptor{
 
     private int refreshJwt() {
         try {
-            BuyBuddyJwt jwt = BuyBuddyApi.getSharedInstance().getJwt(tokenManager.getToken());
+            BuyBuddyApiObject<BuyBuddyJwt> jwt = BuyBuddy.getInstance().api.getJwt(tokenManager.getToken());
 
             if (jwt != null){
-                tokenManager.setJwt(jwt.getJwt());
+                if (jwt.getData() != null && jwt.getData().getJwt() != null)
+                    tokenManager.setJwt(jwt.getData().getJwt());
                 return 200;
             }
             return 400;

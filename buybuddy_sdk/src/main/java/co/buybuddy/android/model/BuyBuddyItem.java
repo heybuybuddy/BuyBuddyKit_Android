@@ -6,13 +6,37 @@ package co.buybuddy.android.model;
  */
 
 public final class BuyBuddyItem {
-    String hitagId;
-    String name;
-    int h_id;
-    int id;
-    BuyBuddyItemData metadata;
-    String imageURL;
-    String description;
-    BuyBuddyItemPrice price;
+    private String hitagId;
+    private String name;
+    private int h_id;
+    private int id;
+    private BuyBuddyItemData metadata;
+    private String imageURL;
+    private String description;
+    private BuyBuddyItemPrice price;
+
+    public String getHitagId() {
+        return hitagId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public BuyBuddyItemData getMetadata() {
+        return metadata;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getImageURL() {
+        return imageURL;
+    }
+
+    public BuyBuddyItemPrice getPrice() {
+        return price;
+    }
 }
 

@@ -1,4 +1,4 @@
-package co.buybuddy.android.http;
+package co.buybuddy.android;
 
 import android.annotation.SuppressLint;
 

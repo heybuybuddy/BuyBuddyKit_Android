@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <service android:name=".http.HitagScanService" />
+        <service android:name=".HitagScanService" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
