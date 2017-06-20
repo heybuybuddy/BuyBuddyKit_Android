@@ -1,24 +1,19 @@
 package co.buybuddy.android;
 
-/**
- * Created by furkan on 6/14/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
- */
-
-public final class CollectedHitag {
+class CollectedHitag {
     private String id; // 0100000001
-    private long timestamp;
     private int rssi;
     private int txPower;
-    private int validationCode;
+    private int validationCode = -1;
     private int battery;
 
     public String getId() {
         return id;
     }
 
-    public long getTimestamp() {
-        return timestamp;
+    public CollectedHitag setId(String id) {
+        this.id = id;
+        return this;
     }
 
     public int getRssi() {
@@ -37,8 +32,7 @@ public final class CollectedHitag {
         return battery;
     }
 
-    CollectedHitag(String id, int rssi){
-        this.id = id;
+    CollectedHitag(int rssi){
         this.rssi = rssi;
     }
 
@@ -64,11 +58,10 @@ public final class CollectedHitag {
 
     @Override
     public String toString() {
-        return "HitagId   : " + BuyBuddyUtil.w(id) + "\n"  +
-               "Timestamp : " + BuyBuddyUtil.w(timestamp)  + "\n"  +
-               "Rssi : "      + BuyBuddyUtil.w(rssi)       + "\n"  +
-               "TxPower : "   + BuyBuddyUtil.w(txPower)    + "\n"  +
-               "Battery : "   + BuyBuddyUtil.w(battery)    + "\n"  +
+        return "HitagId   : " + BuyBuddyUtil.w(id)      + "\n"  +
+               "Rssi : "      + BuyBuddyUtil.w(rssi)    + "\n"  +
+               "TxPower : "   + BuyBuddyUtil.w(txPower) + "\n"  +
+               "Battery : "   + BuyBuddyUtil.w(battery) + "\n"  +
                "ValidCode : " + BuyBuddyUtil.w(validationCode);
     }
 }

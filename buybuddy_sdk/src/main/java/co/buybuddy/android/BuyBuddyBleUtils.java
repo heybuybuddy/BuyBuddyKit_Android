@@ -5,7 +5,7 @@ package co.buybuddy.android;
  * Gururla sunar. AHAHAHAHA Some spagetties
  */
 
-class BuyBuddyBleUtils {
+public class BuyBuddyBleUtils {
     static final String MAIN_PREFIX = "0000beef";
     static final String MAIN_POSTFIX = "-6275-7962-7564-647966656565";
 
@@ -17,4 +17,7 @@ class BuyBuddyBleUtils {
 
     static long HITAG_SCAN_INTERVAL_ACTIVE = 4500L;
     static long HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE = 300L;
+
+    public final static int HITAG_TYPE_CUSTOM = 6;
+    public final static int HITAG_TYPE_BEACON = 3;
 }

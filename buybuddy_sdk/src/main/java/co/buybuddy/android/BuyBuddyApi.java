@@ -200,17 +200,17 @@ public final class BuyBuddyApi {
              delegate);
     }
 
-    public void getOrderDetail(long saleId, BuyBuddyApiCallback<OrderDelegateDetail> delegate) {
+    public void getOrderDetail(long orderId, BuyBuddyApiCallback<OrderDelegateDetail> delegate) {
         call(OrderDelegateDetail.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.OrderDetail,
-                        new ParameterMap().add("sale_id", saleId)),
+                        new ParameterMap().add("sale_id", orderId)),
                 delegate);
     }
 
-    void completeOrder(long saleId, String hitagId, int status, BuyBuddyApiCallback<BuyBuddyBase> delegate){
+    void completeOrder(long orderId, String hitagId, int status, BuyBuddyApiCallback<BuyBuddyBase> delegate){
         call(BuyBuddyBase.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.HitagCompletion,
-                        new ParameterMap().add("sale_id", saleId)
+                        new ParameterMap().add("sale_id", orderId)
                                           .add("compile_id", hitagId)
                                           .add("hitag_completion", new ParameterMap().add("status", status).getMap())),
                 delegate);
@@ -222,10 +222,10 @@ public final class BuyBuddyApi {
                 delegate);
     }
 
-    void validateOrder(long saleId, Map<String, Integer> hitagValidations, BuyBuddyApiCallback<HitagPassword> delegate){
+    void validateOrder(long orderId, Map<String, Integer> hitagValidations, BuyBuddyApiCallback<HitagPassword> delegate){
         call(HitagPassword.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.OrderCompletion,
-                                                 new ParameterMap().add("sale_id", saleId)
+                                                 new ParameterMap().add("sale_id", orderId)
                                                                    .add("hitag_release_params", new ParameterMap().add("hitags", hitagValidations).getMap())),
                 delegate);
     }

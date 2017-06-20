@@ -6,13 +6,10 @@ import android.os.Bundle;
 import android.util.Log;
 
 import co.buybuddy.android.BuyBuddy;
-import co.buybuddy.android.BuyBuddyApi;
 import co.buybuddy.android.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.android.responses.BuyBuddyApiError;
 import co.buybuddy.android.responses.BuyBuddyApiObject;
 import co.buybuddy.android.model.BuyBuddyItem;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 
 public class MainActivity extends AppCompatActivity {
 

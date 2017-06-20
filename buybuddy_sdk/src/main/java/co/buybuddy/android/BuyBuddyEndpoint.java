@@ -15,17 +15,17 @@ import java.util.Map;
 
 class BuyBuddyEndpoint {
 
-    public static final String QrHitag          = "GET /iot/scan/<hitag_id>";
-    public static final String ScanHitag        = "POST /iot/scan_record";
-    public static final String Jwt              = "POST /iam/users/tokens";
-    public static final String OrderDelegate    = "POST /order/delegate";
-    public static final String HitagCompletion  = "PUT /order/overview/<sale_id>/hitag_completion/<compile_id>";
-    public static final String OrderCompletion  = "POST /order/delegate/<sale_id>/hitag_release";
-    public static final String HitagIncomplete  = "GET /order/uncompleted";
-    public static final String OrderDetail      = "GET /order/overview/<sale_id>/detail";
+    static final String QrHitag          = "GET /iot/scan/<hitag_id>";
+    static final String ScanHitag        = "POST /iot/scan_record";
+    static final String Jwt              = "POST /iam/users/tokens";
+    static final String OrderDelegate    = "POST /order/delegate";
+    static final String HitagCompletion  = "PUT /order/overview/<sale_id>/hitag_completion/<compile_id>";
+    static final String OrderCompletion  = "POST /order/delegate/<sale_id>/hitag_release";
+    static final String HitagIncomplete  = "GET /order/uncompleted";
+    static final String OrderDetail      = "GET /order/overview/<sale_id>/detail";
 
-    public static final String sandBoxPrefix = "sandbox-api";
-    public static final String productionPrefix = "api";
+    private static final String sandBoxPrefix = "sandbox-api";
+    private static final String productionPrefix = "api";
 
 
     private static final String startingTypes[] = {"GET", "POST", "PUT"};
