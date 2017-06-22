@@ -9,6 +9,11 @@ public class BuyBuddyApiError extends Throwable {
     private String tracemessage = "";
     private String tracecode = "";
     private int responsecode = -1;
+    private String name = "";
+
+    public String getName() {
+        return name;
+    }
 
     public String getTraceMessage(){
         return tracemessage;
@@ -20,6 +25,11 @@ public class BuyBuddyApiError extends Throwable {
 
     public int getResponseCode(){
         return responsecode;
+    }
+
+    public BuyBuddyApiError setResponsecode(int responsecode) {
+        this.responsecode = responsecode;
+        return this;
     }
 
     public BuyBuddyApiError(String traceCode,

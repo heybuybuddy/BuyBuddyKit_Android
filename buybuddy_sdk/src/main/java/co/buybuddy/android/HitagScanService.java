@@ -4,6 +4,8 @@ import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.ScanCallback;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.exceptions.BleScanException;
+import com.polidea.rxandroidble.internal.RxBleLog;
 import com.polidea.rxandroidble.scan.ScanFilter;
 import com.polidea.rxandroidble.scan.ScanResult;
 import com.polidea.rxandroidble.scan.ScanSettings;
@@ -38,6 +41,7 @@ import static co.buybuddy.android.BuyBuddyBleUtils.HITAG_TYPE_BEACON;
 import static co.buybuddy.android.BuyBuddyBleUtils.HITAG_TYPE_CUSTOM;
 import static co.buybuddy.android.BuyBuddyBleUtils.MAIN_POSTFIX;
 import static co.buybuddy.android.BuyBuddyBleUtils.MAIN_PREFIX;
+import static com.polidea.rxandroidble.scan.ScanSettings.SCAN_MODE_BALANCED;
 import static com.polidea.rxandroidble.scan.ScanSettings.SCAN_MODE_LOW_POWER;
 
 
@@ -47,13 +51,15 @@ import static com.polidea.rxandroidble.scan.ScanSettings.SCAN_MODE_LOW_POWER;
  */
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-final class HitagScanService extends Service{
+final public class HitagScanService extends Service{
 
     private Handler mBetweenHandler, mHitagReportHandler, mHandler;
     private AlarmManager hitagAlarm;
     private Context context;
     private Toast toaster;
     private int reportCount = 0;
+
+    private final static String TAG = "HitagScanService";
 
     private long lastHitagTimeStamp;
     private boolean hitagStateActive = true;
@@ -85,7 +91,6 @@ final class HitagScanService extends Service{
 
         activeHitags = new HashMap<>();
         passiveHitags = new HashMap<>();
-
     }
 
     @Override
@@ -115,9 +120,7 @@ final class HitagScanService extends Service{
     }
 
     private void startReporter() {
-
         reportCount++;
-
         mHitagReportHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -129,11 +132,13 @@ final class HitagScanService extends Service{
 
     private void stopScanHandler() {
 
+        if (!scanSubscription.isUnsubscribed())
+            scanSubscription.unsubscribe();
+
+        BuyBuddyUtil.printD("Scan Service", "stop scan");
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (!scanSubscription.isUnsubscribed())
-                    scanSubscription.unsubscribe();
 
                 startScanWithHandler();
             }
@@ -141,8 +146,10 @@ final class HitagScanService extends Service{
     }
 
     private void subscribeScan() {
+        BuyBuddyUtil.printD("Scan Service", "start Scan");
+
         scanSubscription = rxBleClient.scanBleDevices(
-                new ScanSettings.Builder().setScanMode(SCAN_MODE_LOW_POWER).build(),
+                new ScanSettings.Builder().setScanMode(SCAN_MODE_BALANCED).build(),
                 new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(MAIN_PREFIX + MAIN_POSTFIX)).build()
         ).subscribe(new Action1<ScanResult>() {
             @Override
@@ -153,14 +160,10 @@ final class HitagScanService extends Service{
                                                                    scanResult.getRssi());
 
                 if (hitag != null) {
-
-
-                    toaster.setText("YEAP");
-                    toaster.show();
+                    BuyBuddyUtil.printD(TAG, "HITAG FOUND");
+                    hitagStateActive = true;
+                    lastHitagTimeStamp = System.currentTimeMillis();
                 }
-
-
-
 
 
 
@@ -169,7 +172,7 @@ final class HitagScanService extends Service{
             @Override
             public void call(Throwable throwable) {
                 if (throwable instanceof BleScanException) {
-                    handleBleScanException((BleScanException) throwable);
+                    BuyBuddyBleUtils.handBleScanExeption((BleScanException) throwable);
                 }
             }
         });
@@ -177,12 +180,15 @@ final class HitagScanService extends Service{
 
     private void startScanWithHandler() {
 
+        BuyBuddyUtil.printD(TAG, "startScan");
+
         hitagStateActive = System.currentTimeMillis() - lastHitagTimeStamp <= 30000;
 
+        subscribeScan();
         mBetweenHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                subscribeScan();
+
                 stopScanHandler();
             }
         }, hitagStateActive ? HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE : HITAG_SCAN_BETWEEN_INTERVAL_IDLE);
@@ -233,44 +239,6 @@ final class HitagScanService extends Service{
         if (passiveHitags != null) {
             passiveHitags.clear();
             passiveHitags = null;
-        }
-    }
-
-    private void handleBleScanException(BleScanException bleScanException) {
-
-        switch (bleScanException.getReason()) {
-            case BleScanException.BLUETOOTH_NOT_AVAILABLE:
-                Log.d("ERROR", "Bluetooth is not available");
-                break;
-            case BleScanException.BLUETOOTH_DISABLED:
-                Log.d("ERROR", "Enable bluetooth and try again");
-                break;
-            case BleScanException.LOCATION_PERMISSION_MISSING:
-                Log.d("ERROR", "On Android 6.0 location permission is required");
-                break;
-            case BleScanException.LOCATION_SERVICES_DISABLED:
-                Log.d("ERROR", "Location services needs to be enabled on Android 6.0");
-                break;
-            case BleScanException.SCAN_FAILED_ALREADY_STARTED:
-                Log.d("ERROR", "Scan with the same filters is already started");
-                break;
-            case BleScanException.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
-                Log.d("ERROR", "Failed to register application for bluetooth scan");
-                break;
-            case BleScanException.SCAN_FAILED_FEATURE_UNSUPPORTED:
-                Log.d("ERROR", "Scan with specified parameters is not supported");
-                break;
-            case BleScanException.SCAN_FAILED_INTERNAL_ERROR:
-                Log.d("ERROR", "Scan failed due to internal error");
-                break;
-            case BleScanException.SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES:
-                Log.d("ERROR", "Scan cannot start due to limited hardware resources");
-                break;
-            case BleScanException.UNKNOWN_ERROR_CODE:
-            case BleScanException.BLUETOOTH_CANNOT_START:
-            default:
-                Log.d("ERROR", "Unable to start scanning");
-                break;
         }
     }
 }

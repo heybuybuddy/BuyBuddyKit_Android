@@ -8,8 +8,18 @@ package co.buybuddy.android.responses;
 public class BuyBuddyBase {
 
     private BuyBuddyApiError errors;
+    private int statusCode = 0;
+
+    public int getStatusCode(){
+        return statusCode;
+    }
+
+    public BuyBuddyBase setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+        return this;
+    }
 
     public BuyBuddyApiError getErrors() {
-        return errors;
+        return errors.setResponsecode(statusCode);
     }
 }

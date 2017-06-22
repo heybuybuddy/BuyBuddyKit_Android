@@ -100,6 +100,9 @@ public final class BuyBuddyApi {
                     try{
                         GsonBuilder gsonBuilder = new GsonBuilder();
                         BuyBuddyApiObject<T> responseObject = gsonBuilder.create().fromJson(responseStr, getType(BuyBuddyApiObject.class, clazz));
+                        if (responseObject != null) {
+                            responseObject.setStatusCode(response.code());
+                        }
                         delegate.success(responseObject);
                     } catch (JsonSyntaxException ex) {
                         delegate.error(new BuyBuddyApiError("-0000", "JsonSyntaxException", response.code()));
@@ -109,7 +112,10 @@ public final class BuyBuddyApi {
 
                     try{
                         BuyBuddyBase base = new Gson().fromJson(responseStr, BuyBuddyBase.class);
-                        delegate.error(base.getErrors());
+                        if (base != null) {
+                            base.setStatusCode(response.code());
+                            delegate.error(base.getErrors());
+                        }
                     }catch(JsonSyntaxException ex){
                         delegate.error(new BuyBuddyApiError("-0001", "JsonSyntaxException", response.code()));
                     }
@@ -230,7 +236,7 @@ public final class BuyBuddyApi {
                 delegate);
     }
 
-    public void createOrder(String hitagIds, float sub_total, BuyBuddyApiCallback<OrderDelegate> delegate){
+    public void createOrder(int[] hitagIds, float sub_total, BuyBuddyApiCallback<OrderDelegate> delegate){
         call(OrderDelegate.class,
              BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.OrderDelegate, new ParameterMap().add("order_delegate", new ParameterMap()
                                                                                                             .add("hitags", hitagIds)

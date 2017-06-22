@@ -8,16 +8,18 @@ package co.buybuddy.android.responses;
 public class OrderDelegate {
     private long sale_id;
     private long delegate_id;
-    private long employee_id;
     private float grand_total;
     private int status_flag;
-    private int hitag_ids[];
 
-    public long getSaleId(){
+    public long getOrderId(){
         return sale_id;
     }
 
     public long getDelegateId(){
         return delegate_id;
+    }
+
+    public float getTotalPrice() {
+        return grand_total;
     }
 }

@@ -51,6 +51,12 @@ public final class CollectedHitagTS extends CollectedHitag {
         return this;
     }
 
+    @Override
+    public CollectedHitagTS setValidationCode(int validationCode) {
+        super.setValidationCode(validationCode);
+        return this;
+    }
+
     @Nullable
     public static CollectedHitagTS getHitag(RxBleDevice device, byte scanRecord[], int rssi) {
 
@@ -100,13 +106,16 @@ public final class CollectedHitagTS extends CollectedHitag {
                         int txPower =  recordMap.get(TX_POWER)
                                                 != null ? (256 - Integer.parseInt(recordMap.get(TX_POWER), 16)) : -90; //TX POWER NORMAL VALUE -91
                         int battery = 0;
+                        int validationCode = 0;
 
                         deviceID = null;
 
-                        if (manufacturerData != null) {
+                        if (manufacturerData != null) { // 02442C5A540507000000010059
                             if (manufacturerData.length() == 26) {
                                 String devicePostfix = manufacturerData.substring(12, 20);
                                 String devicePrefix = manufacturerData.substring(20, 22);
+                                String validation = manufacturerData.substring(10, 12) + manufacturerData.substring(8, 10);
+                                validationCode = Integer.parseInt(validation, 16);
                                 String reOrderedPostfix = "";
 
                                 for (int i = 8; i >= 2; i -= 2) {
@@ -120,6 +129,7 @@ public final class CollectedHitagTS extends CollectedHitag {
                         if (deviceID != null) {
                             hitag = new CollectedHitagTS(rssi)
                                             .setDevice(device)
+                                            .setValidationCode(validationCode)
                                             .setId(deviceID)
                                             .setTxPower(txPower)
                                             .setBattery(battery);

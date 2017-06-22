@@ -12,11 +12,11 @@ public final class OrderDetail {
     private float total_campaign_price;
     private String[] hitag_ids;
 
-    public long getSale_id() {
+    public long getOrderId() {
         return sale_id;
     }
 
-    public float getTotal_price() {
+    public float getTotalPrice() {
         return total_price;
     }
 

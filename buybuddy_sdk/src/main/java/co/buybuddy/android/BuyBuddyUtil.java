@@ -32,7 +32,7 @@ final class BuyBuddyUtil {
     private static boolean DEBUG = true;
     public static void printD(String tag, String message){
         if (DEBUG){
-            Log.d(tag, message);
+            Log.d("**BuyBuddy** " + tag, message);
         }
     }
 

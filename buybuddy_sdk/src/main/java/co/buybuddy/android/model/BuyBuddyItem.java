@@ -19,6 +19,10 @@ public final class BuyBuddyItem {
         return hitagId;
     }
 
+    public int getHitagIdInt() {
+        return h_id;
+    }
+
     public String getName() {
         return name;
     }
