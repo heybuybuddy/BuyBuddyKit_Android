@@ -48,6 +48,8 @@ class BuyBuddyAuthorization implements Interceptor{
         setAuthHeader(builder); //write current token to request
 
         request = builder.build(); //overwrite old request
+
+
         Response response = chain.proceed(request); //perform request, here original request will be executed
 
         if (response.code() == 401) { //if unauthorized
@@ -62,6 +64,11 @@ class BuyBuddyAuthorization implements Interceptor{
                             if (delegate != null)
                                 delegate.tokenExpired();
                         return response; //if token refresh failed - show error to user
+                    }else {
+
+                        response = chain.proceed(request);
+
+                        return response;
                     }
                 }
             }

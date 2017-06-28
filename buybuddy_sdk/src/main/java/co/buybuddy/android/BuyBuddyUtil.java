@@ -30,9 +30,14 @@ final class BuyBuddyUtil {
     public static final long HITAG_MANAGER_ALARM_INTERVAL = 60000;
     public static final long HITAG_BLE_SCAN_INTERVAL = 800;
     private static boolean DEBUG = true;
+
+
     public static void printD(String tag, String message){
         if (DEBUG){
-            Log.d("**BuyBuddy** " + tag, message);
+            if (tag.length() > 10){
+                tag = tag.substring(0, 10);
+            }
+            Log.d("*bbddysdk* " + tag, message);
         }
     }
 

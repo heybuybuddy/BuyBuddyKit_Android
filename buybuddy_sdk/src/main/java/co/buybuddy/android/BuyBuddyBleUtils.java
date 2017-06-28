@@ -16,11 +16,11 @@ public class BuyBuddyBleUtils {
     static final String HITAG_TX = "00007373";
     static final String HITAG_RX = "00007478";
 
-    static long HITAG_SCAN_INTERVAL_IDLE = 500L;
+    static long HITAG_SCAN_INTERVAL_IDLE = 1000L;
     static long HITAG_SCAN_BETWEEN_INTERVAL_IDLE = 30000L;
 
-    static long HITAG_SCAN_INTERVAL_ACTIVE = 4500L;
-    static long HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE = 300L;
+    static long HITAG_SCAN_INTERVAL_ACTIVE = 1000L;
+    static long HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE = 800L;
 
     public final static int HITAG_TYPE_CUSTOM = 6;
     public final static int HITAG_TYPE_BEACON = 3;

@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -57,30 +58,39 @@ class BuyBuddyEndpoint {
 
         String parsedEndpoint = endpoint.replaceFirst(currentType + " ", "");
 
-        if (params != null){
-            Map<String, Object> placeholders = new HashMap<>();
-            Map<String, Object> parameters = params.getMap();
+        try {
+            if (params != null){
+                Map<String, Object> placeholders = new HashMap<>();
+                Map<String, Object> jsonBody;
+                Map<String, Object> parameters = params.getMap();
+                jsonBody = parameters;
 
-            if (params.getMap() != null){
-                for (String key : parameters.keySet()){
-                    String pattern = "<" + key + ">";
-                    String replacement = parameters.get(key) + "";
+                if (params.getMap() != null){
 
-                    if (parsedEndpoint.contains(pattern)){
-                        parsedEndpoint = parsedEndpoint.replace(pattern, replacement);
-                        placeholders.put(key, parameters.get(key));
-                        parameters.remove(key);
+                    Iterator<String> iter = jsonBody.keySet().iterator();
+
+                    while (iter.hasNext()) {
+                        String key = iter.next();
+
+                        String pattern = "<" + key + ">";
+                        String replacement = parameters.get(key) + "";
+
+                        if (parsedEndpoint.contains(pattern)){
+                            parsedEndpoint = parsedEndpoint.replace(pattern, replacement);
+                            placeholders.put(key, parameters.get(key));
+                            iter.remove();
+                        }
                     }
-                }
 
-                try{
-                    JSONObject json = new JSONObject(parameters);
+                    JSONObject json = new JSONObject(jsonBody);
                     jsonString = json.toString();
-                }catch (Exception ex){
-                    ex.printStackTrace();
                 }
             }
+        }catch (Exception ex) {
+            ex.printStackTrace();
         }
+
+
 
         return new BuyBuddyHttpModel(getBaseUrl() + parsedEndpoint, jsonString, currentMethod);
     }

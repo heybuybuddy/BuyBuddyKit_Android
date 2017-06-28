@@ -142,7 +142,7 @@ final public class HitagScanService extends Service{
 
                 startScanWithHandler();
             }
-        }, hitagStateActive ? HITAG_SCAN_INTERVAL_ACTIVE : HITAG_SCAN_INTERVAL_IDLE);
+        }, hitagStateActive ? HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE : HITAG_SCAN_BETWEEN_INTERVAL_IDLE);
     }
 
     private void subscribeScan() {
@@ -160,9 +160,9 @@ final public class HitagScanService extends Service{
                                                                    scanResult.getRssi());
 
                 if (hitag != null) {
-                    BuyBuddyUtil.printD(TAG, "HITAG FOUND");
-                    hitagStateActive = true;
+                    BuyBuddyUtil.printD(TAG, "Hitag: " + hitag.getId());
                     lastHitagTimeStamp = System.currentTimeMillis();
+                    activeHitags.put(hitag.getId(), hitag);
                 }
 
 
@@ -179,9 +179,6 @@ final public class HitagScanService extends Service{
     }
 
     private void startScanWithHandler() {
-
-        BuyBuddyUtil.printD(TAG, "startScan");
-
         hitagStateActive = System.currentTimeMillis() - lastHitagTimeStamp <= 30000;
 
         subscribeScan();
@@ -191,7 +188,7 @@ final public class HitagScanService extends Service{
 
                 stopScanHandler();
             }
-        }, hitagStateActive ? HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE : HITAG_SCAN_BETWEEN_INTERVAL_IDLE);
+        }, hitagStateActive ? HITAG_SCAN_INTERVAL_ACTIVE : HITAG_SCAN_INTERVAL_IDLE);
     }
 
     private void subScribeBleFlow(){

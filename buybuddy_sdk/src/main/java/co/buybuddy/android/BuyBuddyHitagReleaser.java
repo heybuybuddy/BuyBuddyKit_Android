@@ -3,7 +3,6 @@ package co.buybuddy.android;
 import android.content.Context;
 import android.os.Handler;
 import android.os.ParcelUuid;
-import android.util.Log;
 
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.RxBleConnection;
@@ -20,11 +19,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimerTask;
 import java.util.UUID;
 
 import co.buybuddy.android.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.android.responses.BuyBuddyApiError;
 import co.buybuddy.android.responses.BuyBuddyApiObject;
+import co.buybuddy.android.responses.BuyBuddyBase;
 import co.buybuddy.android.responses.OrderDelegateDetail;
 import rx.Observable;
 import rx.Subscription;
@@ -38,9 +39,7 @@ import static co.buybuddy.android.BuyBuddyBleUtils.HITAG_TX;
 import static co.buybuddy.android.BuyBuddyBleUtils.MAIN_POSTFIX;
 import static co.buybuddy.android.BuyBuddyBleUtils.MAIN_PREFIX;
 import static com.polidea.rxandroidble.RxBleConnection.*;
-import static com.polidea.rxandroidble.scan.ScanSettings.SCAN_MODE_BALANCED;
 import static com.polidea.rxandroidble.scan.ScanSettings.SCAN_MODE_LOW_LATENCY;
-import static com.polidea.rxandroidble.scan.ScanSettings.SCAN_MODE_OPPORTUNISTIC;
 
 /**
  * Created by furkan on 6/14/17.
@@ -49,6 +48,8 @@ import static com.polidea.rxandroidble.scan.ScanSettings.SCAN_MODE_OPPORTUNISTIC
 
 
 public class BuyBuddyHitagReleaser {
+
+    private static final String TAG = "HitagReleaser";
 
     public enum Status {
         CONNECTED("CONNECTED"),
@@ -69,6 +70,8 @@ public class BuyBuddyHitagReleaser {
 
         String rawValue;
     }
+
+    private static BuyBuddyHitagReleaser mInstance;
 
     private enum Response {
         SUCCESS(new byte[]{1, 1}),
@@ -105,20 +108,20 @@ public class BuyBuddyHitagReleaser {
 
     public interface Delegate {
         void statusUpdate(String hitagId, Status hitagStatus);
-        void error(BuyBuddyApiError error);
+        void error(HitagReleaserError error);
     }
 
     private Delegate delegate;
-    private final static long CONNECTION_TIMEOUT = 5000;
-    private final static long PROCESS_TIMEOUT = 5000;
+    private final static long CONNECTION_TIMEOUT = 10000;
+    private final static long PROCESS_TIMEOUT = 10000;
     private final static long HITAG_RESPONSE_TIMEOUT = 2500;
     private final static long HITAG_SCAN_TIMEOUT = 10000;
 
-    private HashSet<String> willOpenHitags;
+    private volatile HashSet<String> willOpenHitags;
     private HashSet<String> completedHitags;
     private HashSet<String> incompletedHitags;
-    volatile private String currentHitagId;
-    volatile boolean connecting = false;
+    private volatile String currentHitagId;
+    private volatile boolean connecting = false;
 
     private HashMap<String, Integer> hitagTryCount;
 
@@ -126,6 +129,8 @@ public class BuyBuddyHitagReleaser {
     private Subscription scanSubscription, connectionStateSubscription, notificationStateSubscribtion, comminicationSubscription;
     private ArrayList<Subscription> subscriptionsList;
     private PublishSubject<Void> disconnectTriggerSubject = PublishSubject.create();
+    private PublishSubject<Void> scanUnsubscriber = PublishSubject.create();
+    private PublishSubject<Void> cancelListener = PublishSubject.create();
 
     private Context context;
     private RxBleConnectionState connectionState;
@@ -133,73 +138,109 @@ public class BuyBuddyHitagReleaser {
 
     private Observable<RxBleConnection> connectionObservable;
 
+    public static void startReleasing(final long order_id, final Context ctx) {
+        if (mInstance != null) {
+            mInstance.cancelProcesses();
+            mInstance.cancelResponseHandler();
+            mInstance.triggerDisconnect();
+            mInstance.cancelListeningCharacteristic();
+        }
+        mInstance = new BuyBuddyHitagReleaser();
 
-    public BuyBuddyHitagReleaser(long orderId, Context context) {
+        mInstance.completedHitags = new HashSet<>();
+        mInstance.incompletedHitags = new HashSet<>();
+        mInstance.willOpenHitags = new HashSet<>();
+        mInstance.context = ctx;
+        mInstance.rxBleClient = BuyBuddy.getInstance().client;
+        mInstance.hitagTryCount = new HashMap<>();
+        mInstance.orderId = order_id;
 
-        completedHitags = new HashSet<>();
-        incompletedHitags = new HashSet<>();
-        willOpenHitags = new HashSet<>();
-        this.context = context;
-        rxBleClient = RxBleClient.create(context);
-        hitagTryCount = new HashMap<>();
-        this.orderId = orderId;
-
-        BuyBuddy.getInstance().api.getOrderDetail(orderId, new BuyBuddyApiCallback<OrderDelegateDetail>() {
+        BuyBuddyUtil.printD(TAG, "STARTING");
+        BuyBuddy.getInstance().api.getOrderDetail(mInstance.orderId, new BuyBuddyApiCallback<OrderDelegateDetail>() {
             @Override
             public void success(BuyBuddyApiObject<OrderDelegateDetail> response) {
-                Collections.addAll(willOpenHitags, response.getData().getHitagIds());
-                if (willOpenHitags.size() > 0) {
-                    startHitagReleasing();
+                Collections.addAll(mInstance.willOpenHitags, response.getData().getHitagIds());
+                if (mInstance.willOpenHitags.size() > 0) {
+                    BuyBuddyUtil.printD(TAG, "HITAG Response");
+                    mInstance.startHitagReleasing(response.getData().getHitagIds()[0]);
+                }else{
+                    mInstance.delegate.error(new HitagReleaserError("Empty Hitag List", 103));
                 }
             }
 
             @Override
             public void error(BuyBuddyApiError error) {
-                if (delegate != null)
-                    delegate.error(error);
+                if (mInstance.delegate != null) {
+
+                    if (error.getResponseCode() == 404) {
+                        mInstance.delegate.error(new HitagReleaserError("Order is not found", 101));
+                    }else if (error.getResponseCode() == 422) {
+                        mInstance.delegate.error(new HitagReleaserError("Parameter Error", 102));
+                    }else {
+                        mInstance.delegate.error(new HitagReleaserError("Unknown Error", 900));
+                    }
+
+                }
             }
         });
 
-        hitagResponseTimeoutHandler = new Handler();
-        hitagScanTimeoutHandler  = new Handler();
-        connectionTimeoutHandler = new Handler();
-        processTimeoutHandler = new Handler();
+        mInstance.hitagResponseTimeoutHandler = new Handler();
+        mInstance.hitagScanTimeoutHandler  = new Handler();
+        mInstance.connectionTimeoutHandler = new Handler();
+        mInstance.processTimeoutHandler = new Handler();
 
 
-        subscriptionsList = new ArrayList<>();
-        subscriptionsList.add(connectionStateSubscription);
-        subscriptionsList.add(notificationStateSubscribtion);
-        subscriptionsList.add(comminicationSubscription);
+        mInstance.subscriptionsList = new ArrayList<>();
+        mInstance.subscriptionsList.add(mInstance.connectionStateSubscription);
+        mInstance.subscriptionsList.add(mInstance.notificationStateSubscribtion);
+        mInstance.subscriptionsList.add(mInstance.comminicationSubscription);
     }
+
 
     public BuyBuddyHitagReleaser setDelegate(Delegate delegate) {
         this.delegate = delegate;
         return this;
     }
 
-    private void startHitagReleasing() {
-        //startScanHandler();
+    private void startHitagReleasing(String hitagId) {
+        if (scanSubscription != null)
+            if (scanSubscription.isUnsubscribed())
+                scanSubscription.unsubscribe();
+
+        if (connectionObservable != null)
+            triggerDisconnect();
+
+        currentHitagId = hitagId;
+
+        startScanHandler();
+        BuyBuddyUtil.printD(TAG, "Scan Starting Device Count : " + willOpenHitags.size());
+
+
 
         scanSubscription = rxBleClient.scanBleDevices(
                 new ScanSettings.Builder().setScanMode(SCAN_MODE_LOW_LATENCY).build(),
                 new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(MAIN_PREFIX + MAIN_POSTFIX)).build()
-               ).subscribeOn(AndroidSchedulers.mainThread())
+               ).takeUntil(scanUnsubscriber)
+                //.subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<ScanResult>() {
             @Override
             public void call(ScanResult scanResult) {
 
                 CollectedHitagTS hitag = CollectedHitagTS.getHitag(scanResult.getBleDevice(), scanResult.getScanRecord().getBytes(), scanResult.getRssi());
 
-                if (hitag != null && hitag.getValidationCode() != -1) {
-                    if (willOpenHitags.contains(hitag.getId())) {
-
-                        scanSubscription.unsubscribe();
-                        currentHitagId = hitag.getId();
-                        if (!connecting)
-                            connectDevice(hitag);
-                    }
+                if (hitag != null) {
+                    BuyBuddyUtil.printD(TAG, hitag.getId());
                 }
 
+                if (hitag != null && hitag.getValidationCode() != -1) {
+                    if (willOpenHitags.contains(currentHitagId)) {
+
+                        if (!connecting){
+                            connectDevice(hitag);
+                            unSubscribeScan();
+                        }
+                    }
+                }
             }
         }, new Action1<Throwable>() {
             @Override
@@ -207,7 +248,9 @@ public class BuyBuddyHitagReleaser {
                 if (throwable instanceof BleScanException) {
                     BuyBuddyBleUtils.handBleScanExeption((BleScanException) throwable);
                 }
-                BuyBuddyUtil.printD("Scan", "ERROR");
+                BuyBuddyUtil.printD(TAG, "BleScanExceptionStart");
+                throwable.printStackTrace();
+                BuyBuddyUtil.printD(TAG, "BleScanExceptionFinish");
             }
         });
     }
@@ -218,13 +261,14 @@ public class BuyBuddyHitagReleaser {
         startCTHandler();
         cancelScanHandler();
         connectionStateSubscription = hitag.getDevice().observeConnectionStateChanges()
-            .subscribe(new Action1<RxBleConnection.RxBleConnectionState>() {
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<RxBleConnection.RxBleConnectionState>() {
                 @Override
                 public void call(RxBleConnectionState rxBleConnectionState) {
 
                     switch (rxBleConnectionState) {
                         case CONNECTING:
-                            Log.d("**BuyBuddy** BLEState", "Connecting");
+                            BuyBuddyUtil.printD(TAG, hitag.getId() + " Conneting");
                             connectionState = RxBleConnectionState.CONNECTING;
                             if (delegate != null) {
                                 delegate.statusUpdate(hitag.getId(), Status.CONNECTING);
@@ -232,7 +276,7 @@ public class BuyBuddyHitagReleaser {
                             break;
 
                         case CONNECTED:
-                            Log.d("**BuyBuddy** BLEState", "Connected");
+                            BuyBuddyUtil.printD(TAG, hitag.getId() + " Connected");
 
                             connectionState = RxBleConnectionState.CONNECTED;
                             if (delegate != null) {
@@ -248,12 +292,12 @@ public class BuyBuddyHitagReleaser {
                                 @Override
                                 public void success(BuyBuddyApiObject<HitagPassword> response) {
                                     sendHitagPassword(hitag, response.getData().getHitagPass(hitag.getId()));
-                                    BuyBuddyUtil.printD("HitagPass", "Sending");
+                                    BuyBuddyUtil.printD(TAG, hitag.getId() + " Password Sending");
                                 }
 
                                 @Override
                                 public void error(BuyBuddyApiError error) {
-                                    BuyBuddyUtil.printD("HitagPass", "ERROR");
+                                    BuyBuddyUtil.printD(TAG, hitag.getId() + " PasswordApi Error: " + error.getResponseCode() );
 
                                     if (willOpenHitags.contains(hitag.getId())) {
 
@@ -261,7 +305,6 @@ public class BuyBuddyHitagReleaser {
                                             delegate.statusUpdate(hitag.getId(), Status.VALIDATION_ERROR);
 
                                         nextDevice(true);
-
                                     }
                                 }
                             });
@@ -272,13 +315,13 @@ public class BuyBuddyHitagReleaser {
                         case DISCONNECTED:
                             connecting = false;
                             connectionState = RxBleConnectionState.DISCONNECTED;
-                            BuyBuddyUtil.printD("BLEState", "Disconnected");
+                            BuyBuddyUtil.printD(TAG, hitag.getId() + " Disconnected");
                             break;
 
                         case DISCONNECTING:
                             connecting = false;
                             connectionState = RxBleConnectionState.DISCONNECTING;
-                            Log.d("**BuyBuddy** BLEState", "Disconnecting");
+                            BuyBuddyUtil.printD(TAG, hitag.getId() + " Disconnecting");
                             break;
                     }
 
@@ -312,27 +355,61 @@ public class BuyBuddyHitagReleaser {
                         if (delegate != null)
                             delegate.statusUpdate(hitag.getId(), Status.COMPLETED);
 
-                        BuyBuddyUtil.printD("HitagResponse", hitag.getId() + " HITAG PASS COMPLETED");
-
+                        BuyBuddyUtil.printD(TAG, hitag.getId() + " Hitag Opening Operation Successfully");
+                        cancelResponseHandler();
+                        connectionStateSubscription.unsubscribe();
+                        connectionObservable.doOnNext(null);
                         nextDevice(false);
+                        hitagReleasingCompleted(hitag.getId());
+
+
                     } else if (hitagResponse == Response.ERROR) {
                         if (delegate != null)
                             delegate.statusUpdate(hitag.getId(), Status.VALIDATION_ERROR);
 
-                        Log.d("**BuyBuddy** ERROR :", "HITAG PASS VALIDATION_ERROR");
-                        nextDevice(false);
+                        BuyBuddyUtil.printD(TAG, hitag.getId() + " Hitag Opening Operation Incompleted : " + Response.ERROR);
+                        connectionStateSubscription.unsubscribe();
+                        notificationStateSubscribtion.unsubscribe();
+                        connectionObservable.doOnNext(null);
+                        cancelResponseHandler();
+                        nextDevice(true, true);
+                    }else if (hitagResponse == Response.STARTING){
+                        BuyBuddyUtil.printD(TAG, hitag.getId() + " Hitag Password Process Starting");
                     }
                 }
             }, new Action1<Throwable>() {
                 @Override
                 public void call(Throwable throwable) {
-                    BuyBuddyUtil.printD("HitagResponse", "ERROR INCOME");
+                    BuyBuddyUtil.printD(TAG, hitag.getId() + " Notification Observable Error");
                 }
             });
     }
 
+    private void hitagReleasingCompleted(final String hitagId) {
+
+        BuyBuddy.getInstance().api.completeOrder(orderId, hitagId, 1, new BuyBuddyApiCallback<BuyBuddyBase>() {
+            @Override
+            public void success(BuyBuddyApiObject<BuyBuddyBase> response) {
+                BuyBuddyUtil.printD(TAG, hitagId + " Send Completed Server Success");
+            }
+
+            @Override
+            public void error(BuyBuddyApiError error) {
+                BuyBuddyUtil.printD(TAG, hitagId + " Send Completed Server Failed");
+            }
+        });
+    }
+
     private void triggerDisconnect() {
         disconnectTriggerSubject.onNext(null);
+    }
+
+    private void unSubscribeScan() {
+        scanUnsubscriber.onNext(null);
+    }
+
+    private void cancelListeningCharacteristic() {
+        cancelListener.onNext(null);
     }
 
     private void sendHitagPassword(final CollectedHitagTS hitag, String password) {
@@ -358,14 +435,32 @@ public class BuyBuddyHitagReleaser {
             }).subscribe(new Action1<byte[]>() {
                 @Override
                 public void call(byte[] bytes) {
-                    BuyBuddyUtil.printD("HitagPass", "wrote bytes" + bytes.toString());
+                    BuyBuddyUtil.printD(TAG, "Write Operation Success");
                 }
             }, new Action1<Throwable>() {
                 @Override
                 public void call(Throwable throwable) {
-                    BuyBuddyUtil.printD("HitagPass", "ERROR INCOME");
+                    BuyBuddyUtil.printD(TAG, "Writing Error");
                 }
             });
+    }
+
+    private static class HitagReleaserError {
+        private String detail;
+        private int code;
+
+        public String getDetail() {
+            return detail;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public HitagReleaserError(String detail, int code) {
+            this.detail = detail;
+            this.code = code;
+        }
     }
 
     public class ReleaseInfo {
@@ -397,34 +492,89 @@ public class BuyBuddyHitagReleaser {
         }
     }
 
-    private void nextDevice(boolean withError) {
-        String hitagId = currentHitagId;
-
-
-        if (withError) {
-            incompletedHitags.add(hitagId);
-            willOpenHitags.remove(hitagId);
-        }else {
-            completedHitags.add(hitagId);
-            willOpenHitags.remove(hitagId);
-        }
+    private void nextDevice(boolean withError, boolean forceStop) {
 
         cancelPTHandler();
         cancelCTHandler();
         cancelScanHandler();
         cancelResponseHandler();
-
+        cancelListeningCharacteristic();
         doUnSubscribe();
         triggerDisconnect();
 
         connecting = false;
 
+        String hitagId = currentHitagId;
 
-        if (willOpenHitags.size() > 0) {
-            startHitagReleasing();
-        }else{
-            Log.d("nextDevice **BuyBuddy**", "DEVICE LIST IS EMPTY");
+        int tryCount = hitagTryCount.get(hitagId) == null ? 0 : hitagTryCount.get(hitagId);
+        hitagTryCount.put(hitagId, ++tryCount);
+
+        BuyBuddyUtil.printD(TAG, hitagId + " TryCount: " + tryCount + " Hitag Try Count");
+
+
+        // İşlemi sonlandır komutu gelirse direk tamamlanamayan cihazlar listesine ekleniyor.
+        if (forceStop) {
+            willOpenHitags.remove(hitagId);
+            incompletedHitags.add(hitagId);
+        }else { // İşlemi direk sonlandır yoksa hataya bakılır.
+            if (withError) { // <- HATA kontrolü
+                if (tryCount < 3) { // Tekrar sayısı 3 den küçükse akış devam eder.
+                    if (willOpenHitags.size() > 1) { // Açılacak cihaz 1 den fazla ise o an denenen cihaz yerine başka cihaz aranır.
+                        for (String hId : willOpenHitags) {
+                            if (!hId.equals(hitagId)) {
+                                startHitagReleasing(hitagId);
+                                return; // <- DENENECEK CİHAZ akışı tekrar başlar.
+                            }
+                        }
+                    }else{ // Sadece bu cihaz kaldıysa tekrar denenir.
+                        startHitagReleasing(hitagId);
+                        return; // <- DENENECEK CİHAZ akışı tekrar başlar.
+                    }
+                }else { // 3 kere denendiyse tamamlanamayan cihaz olarak listeye eklenir.
+                    willOpenHitags.remove(hitagId);
+                    incompletedHitags.add(hitagId);
+                }
+            }else { // Hata yoksa tamamlanan cihaz listesine eklenir.
+                willOpenHitags.remove(hitagId);
+                completedHitags.add(hitagId);
+            }
         }
+
+
+        if (willOpenHitags.size() > 0) { // Açılacak cihaz kaldı mı diye kontrol edilir.
+            if (willOpenHitags.size() > 1) { // 1 den fazla cihaz varsa o an denenen cihaz yerine başka cihaz aranır.
+                for (String hId : willOpenHitags) {
+                    if (!hId.equals(hitagId)) {
+                        startHitagReleasing(hitagId); // Başka cihaz bulununca onunla başlanır.
+                        break; // <- DENENECEK CİHAZ akışı tekrar başlar.
+                    }
+                }
+            }else { // Tek cihaz kaldıysa tekrar o denenir.
+                startHitagReleasing((String) willOpenHitags.toArray()[0]);
+            }
+        }else{
+            BuyBuddyUtil.printD(TAG, "DONE: Device list is empty !!");
+            cancelProcesses();
+        }
+
+    }
+
+    private void nextDevice(boolean withError) {
+        nextDevice(withError, false);
+    }
+
+    private void cancelProcesses() {
+        cancelPTHandler();
+        cancelCTHandler();
+        cancelScanHandler();
+        cancelResponseHandler();
+
+        cancelListeningCharacteristic();
+        unSubscribeScan();
+        doUnSubscribe();
+        triggerDisconnect();
+
+        connecting = false;
     }
 
     private void startResponseHandler() {
@@ -460,34 +610,35 @@ public class BuyBuddyHitagReleaser {
     }
 
     private Handler hitagScanTimeoutHandler;
-    private Runnable hitagScanTimeoutRunnable = new Runnable() {
+    private TimerTask hitagScanTimeoutRunnable = new TimerTask() {
         @Override
         public void run() {
-            Log.d("**BuyBuddy** Timeout :", "SCAN TIMEOUT");
+            BuyBuddyUtil.printD(TAG, currentHitagId + " Timeout: Hitag Scan");
             nextDevice(true);
         }
     };
 
+
     private Handler hitagResponseTimeoutHandler;
-    private Runnable hitagResponseTimeoutRunnable = new Runnable() {
+    private TimerTask hitagResponseTimeoutRunnable = new TimerTask() {
         @Override
         public void run() {
-            Log.d("**BuyBuddy** Timeout :", "HITAG RESPONSE");
+            BuyBuddyUtil.printD(TAG, currentHitagId + " Timeout: Hitag Response");
             nextDevice(true);
         }
     };
 
     private Handler connectionTimeoutHandler;
-    private Runnable connectionTimeoutRunnable = new Runnable() {
+    private TimerTask connectionTimeoutRunnable = new TimerTask() {
         @Override
         public void run() {
-            Log.d("**BuyBuddy** Timeout :", "CONNECTION");
+            BuyBuddyUtil.printD(TAG, currentHitagId + " Timeout: Hitag Connection");
             nextDevice(true);
         }
     };
 
     private Handler processTimeoutHandler;
-    private Runnable processTimeoutRunnable = new Runnable() {
+    private TimerTask processTimeoutRunnable = new TimerTask() {
         @Override
         public void run() {
             nextDevice(true);
