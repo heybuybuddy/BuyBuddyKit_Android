@@ -24,10 +24,17 @@ import com.polidea.rxandroidble.scan.ScanResult;
 import com.polidea.rxandroidble.scan.ScanSettings;
 
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
+import co.buybuddy.android.interfaces.BuyBuddyApiCallback;
+import co.buybuddy.android.responses.BuyBuddyApiError;
+import co.buybuddy.android.responses.BuyBuddyApiObject;
+import co.buybuddy.android.responses.BuyBuddyBase;
 import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -67,8 +74,9 @@ final public class HitagScanService extends Service{
     Subscription scanSubscription, flowSubscription;
     RxBleClient rxBleClient;
 
-    private static Map<String, CollectedHitagTS> activeHitags;
-    private static Map<String, CollectedHitagTS> passiveHitags;
+    static Map<String, CollectedHitagTS> activeHitags;
+    static Map<String, CollectedHitagTS> passiveHitags;
+    static ArrayList<CollectedHitag> collectedHitags;
 
     @Nullable
     @Override
@@ -91,6 +99,10 @@ final public class HitagScanService extends Service{
 
         activeHitags = new HashMap<>();
         passiveHitags = new HashMap<>();
+        collectedHitags = new ArrayList<>();
+
+        startReporter();
+        startAlarmManager();
     }
 
     @Override
@@ -106,12 +118,26 @@ final public class HitagScanService extends Service{
             startScanWithHandler();
     }
 
+    public static boolean validateActiveHitag(String hitagId) {
+
+        Iterator<String> iter = activeHitags.keySet().iterator();
+
+        while (iter.hasNext()) {
+            String key = iter.next();
+            if(hitagId.equals(hitagId) == true){
+
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void startAlarmManager() {
 
+        hitagAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, HitagScanService.class);
         PendingIntent pintent = PendingIntent.getService(this, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        hitagAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         hitagAlarm.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                                        (System.currentTimeMillis() + BuyBuddyUtil.HITAG_MANAGER_ALARM_INTERVAL),
                                        BuyBuddyUtil.HITAG_MANAGER_ALARM_INTERVAL,
@@ -120,7 +146,51 @@ final public class HitagScanService extends Service{
     }
 
     private void startReporter() {
+        long currentTime = System.currentTimeMillis();
+
+
+        Iterator<String> iter = activeHitags.keySet().iterator();
+
+        while (iter.hasNext()) {
+            String hitagId = iter.next();
+
+            if (currentTime - activeHitags.get(hitagId).getLastSeen() > 5000) {
+                passiveHitags.put(hitagId, activeHitags.get(hitagId));
+                activeHitags.remove(hitagId);
+            }
+
+        }
+
         reportCount++;
+        if (reportCount == 3) {
+
+            Iterator<CollectedHitagTS> it = activeHitags.values().iterator();
+
+            while (it.hasNext()){
+
+                collectedHitags.add(it.next().getWithoutTS());
+            }
+
+            if (!collectedHitags.isEmpty()){
+
+                BuyBuddy.getInstance().api.postScanRecord(collectedHitags, new BuyBuddyApiCallback<BuyBuddyBase>() {
+                    @Override
+                    public void success(BuyBuddyApiObject<BuyBuddyBase> response) {
+                          }
+
+                    @Override
+                    public void error(BuyBuddyApiError error) {
+
+                    }
+                });
+
+
+            }
+            collectedHitags.clear();
+            reportCount = 0;
+        }
+
+
         mHitagReportHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -132,17 +202,15 @@ final public class HitagScanService extends Service{
 
     private void stopScanHandler() {
 
+        mHandler.removeCallbacks(startScanRunnable);
+        mBetweenHandler.removeCallbacks(stopScanRunnable);
+
         if (!scanSubscription.isUnsubscribed())
             scanSubscription.unsubscribe();
 
         BuyBuddyUtil.printD("Scan Service", "stop scan");
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-
-                startScanWithHandler();
-            }
-        }, hitagStateActive ? HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE : HITAG_SCAN_BETWEEN_INTERVAL_IDLE);
+        mHandler.postDelayed(startScanRunnable,
+                             hitagStateActive ? HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE : HITAG_SCAN_BETWEEN_INTERVAL_IDLE);
     }
 
     private void subscribeScan() {
@@ -160,9 +228,15 @@ final public class HitagScanService extends Service{
                                                                    scanResult.getRssi());
 
                 if (hitag != null) {
-                    BuyBuddyUtil.printD(TAG, "Hitag: " + hitag.getId());
+                    //BuyBuddyUtil.printD(TAG, "Hitag: " + hitag.getId());
                     lastHitagTimeStamp = System.currentTimeMillis();
+                    hitag.setLastSeen(lastHitagTimeStamp);
                     activeHitags.put(hitag.getId(), hitag);
+
+                    if (!hitagStateActive) {
+                        hitagStateActive = true;
+                        stopScanHandler();
+                    }
                 }
 
 
@@ -179,17 +253,27 @@ final public class HitagScanService extends Service{
     }
 
     private void startScanWithHandler() {
-        hitagStateActive = System.currentTimeMillis() - lastHitagTimeStamp <= 30000;
+        hitagStateActive = System.currentTimeMillis() - lastHitagTimeStamp <= 31500;
 
         subscribeScan();
-        mBetweenHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-
-                stopScanHandler();
-            }
-        }, hitagStateActive ? HITAG_SCAN_INTERVAL_ACTIVE : HITAG_SCAN_INTERVAL_IDLE);
+        mBetweenHandler.postDelayed(stopScanRunnable,
+                                    hitagStateActive ? HITAG_SCAN_INTERVAL_ACTIVE : HITAG_SCAN_INTERVAL_IDLE);
     }
+
+    Runnable stopScanRunnable = new Runnable() {
+        @Override
+        public void run() {
+            stopScanHandler();
+        }
+    };
+
+    Runnable startScanRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            startScanWithHandler();
+        }
+    };
 
     private void subScribeBleFlow(){
         flowSubscription = rxBleClient.observeStateChanges()

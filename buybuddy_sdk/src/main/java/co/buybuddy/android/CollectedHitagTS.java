@@ -17,9 +17,25 @@ import java.util.Map;
 public final class CollectedHitagTS extends CollectedHitag {
     private long lastSeen;
 
+    public long getLastSeen() {
+        return lastSeen;
+    }
+
+    public void setLastSeen(long lastSeen) {
+        this.lastSeen = lastSeen;
+    }
+
     private static final int MANUFACTURER_DATA = -1;
     private static final int TX_POWER = 10;
     private RxBleDevice device;
+
+    CollectedHitag getWithoutTS(){
+        return new CollectedHitag(this.getRssi())
+                .setBattery(getBattery())
+                .setId(getId())
+                .setTxPower(getTxPower())
+                .setValidationCode(getValidationCode());
+    }
 
     CollectedHitagTS(int rssi) {
         super(rssi);

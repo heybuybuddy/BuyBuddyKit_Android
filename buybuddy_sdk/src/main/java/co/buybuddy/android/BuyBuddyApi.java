@@ -7,6 +7,7 @@ import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Map;
 
 import co.buybuddy.android.interfaces.BuyBuddyApiCallback;
@@ -103,9 +104,11 @@ public final class BuyBuddyApi {
                         if (responseObject != null) {
                             responseObject.setStatusCode(response.code());
                         }
-                        delegate.success(responseObject);
+                        if(delegate != null)
+                            delegate.success(responseObject);
                     } catch (JsonSyntaxException ex) {
-                        delegate.error(new BuyBuddyApiError("-0000", "JsonSyntaxException", response.code()));
+                        if(delegate != null)
+                            delegate.error(new BuyBuddyApiError("-0000", "JsonSyntaxException", response.code()));
                     }
 
                 } else{
@@ -114,10 +117,12 @@ public final class BuyBuddyApi {
                         BuyBuddyBase base = new Gson().fromJson(responseStr, BuyBuddyBase.class);
                         if (base != null) {
                             base.setStatusCode(response.code());
-                            delegate.error(base.getErrors());
+                            if(delegate != null)
+                                delegate.error(base.getErrors());
                         }
                     }catch(JsonSyntaxException ex){
-                        delegate.error(new BuyBuddyApiError("-0001", "JsonSyntaxException", response.code()));
+                        if(delegate != null)
+                            delegate.error(new BuyBuddyApiError("-0001", "JsonSyntaxException", response.code()));
                     }
                 }
             }
@@ -194,7 +199,7 @@ public final class BuyBuddyApi {
              delegate);
     }
 
-    public void postScanRecord(CollectedHitag[] hitags, BuyBuddyApiCallback<BuyBuddyBase> delegate) {
+    public void postScanRecord(ArrayList<CollectedHitag> hitags, BuyBuddyApiCallback<BuyBuddyBase> delegate) {
         call(BuyBuddyBase.class,
              BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.ScanHitag, new ParameterMap().add("scan_record", hitags)),
              delegate);

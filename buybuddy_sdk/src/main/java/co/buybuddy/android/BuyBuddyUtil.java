@@ -11,7 +11,7 @@ import co.buybuddy.android.BuyBuddy;
  * Gururla sunar. AHAHAHAHA Some spagetties
  */
 
-final class BuyBuddyUtil {
+public final class BuyBuddyUtil {
     private static final String BUYBUDDY_SP_PREFIX = "buybuddy_sharedpref_and";
 
     static final String TOKEN_KEY = "token";
@@ -32,13 +32,27 @@ final class BuyBuddyUtil {
     private static boolean DEBUG = true;
 
 
-    public static void printD(String tag, String message){
+     static void printD(String tag, String message){
         if (DEBUG){
             if (tag.length() > 10){
                 tag = tag.substring(0, 10);
             }
             Log.d("*bbddysdk* " + tag, message);
         }
+    }
+
+    public static String isValidPatternForHitag(String hitagId){
+
+        String regexStr = "([0-9A-Fa-f]{2})[-]([0-9A-Fa-f]{4})[-]([0-9A-Fa-f]{4})";
+
+        if(hitagId.matches(regexStr)){
+
+            String replaceHitagId = hitagId.replace("-","");
+
+            return replaceHitagId;
+        }
+
+        return null;
     }
 
     public static void setDEBUG(boolean debug){

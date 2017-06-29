@@ -15,11 +15,15 @@ import com.polidea.rxandroidble.scan.ScanSettings;
 
 import co.buybuddy.android.BuyBuddy;
 import co.buybuddy.android.BuyBuddyHitagReleaser;
+import co.buybuddy.android.BuyBuddyShoppingCartManager;
+import co.buybuddy.android.BuyBuddyUtil;
+import co.buybuddy.android.HitagScanService;
 import co.buybuddy.android.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.android.responses.BuyBuddyApiError;
 import co.buybuddy.android.responses.BuyBuddyApiObject;
 import co.buybuddy.android.model.BuyBuddyItem;
 import co.buybuddy.android.responses.OrderDelegate;
+import okhttp3.internal.Util;
 import rx.functions.Action1;
 
 import static android.view.View.GONE;
@@ -52,14 +56,15 @@ public class MainActivity extends AppCompatActivity {
 
         btnCreateOrder.setVisibility(GONE);
 
-        BuyBuddy.getInstance().api.getProductWithHitagId("0100000006", new BuyBuddyApiCallback<BuyBuddyItem>() {
+
+        BuyBuddy.getInstance().api.getProductWithHitagId(BuyBuddyUtil.isValidPatternForHitag("01-0000-0007"), new BuyBuddyApiCallback<BuyBuddyItem>() {
             @Override
             public void success(BuyBuddyApiObject<BuyBuddyItem> response) {
                 //Log.i("ITEM :", response.getData().toString());
 
                 final BuyBuddyItem six = response.getData();
                 totalBasket += six.getPrice().getCurrentPrice();
-
+                BuyBuddyShoppingCartManager._instance.basket.put(six.getHitagId(),six);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -79,26 +84,29 @@ public class MainActivity extends AppCompatActivity {
         btnCreateOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                BuyBuddy.getInstance().api.createOrder(new int[]{7}, totalBasket,
 
-                        new BuyBuddyApiCallback<OrderDelegate>() {
-                            @Override
-                            public void success(BuyBuddyApiObject<OrderDelegate> response) {
-                                orderId = response.getData().getOrderId();
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        btnRelease.setVisibility(View.VISIBLE);
-                                        btnRelease.animate().alpha(1).setDuration(500);
-                                    }
-                                });
-                            }
+                if (HitagScanService.validateActiveHitag("0100000007")){
+                    BuyBuddy.getInstance().api.createOrder(new int[]{8}, totalBasket,
 
-                            @Override
-                            public void error(BuyBuddyApiError error) {
+                            new BuyBuddyApiCallback<OrderDelegate>() {
+                                @Override
+                                public void success(BuyBuddyApiObject<OrderDelegate> response) {
+                                    orderId = response.getData().getOrderId();
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            btnRelease.setVisibility(View.VISIBLE);
+                                            btnRelease.animate().alpha(1).setDuration(500);
+                                        }
+                                    });
+                                }
 
-                            }
-                        });
+                                @Override
+                                public void error(BuyBuddyApiError error) {
+
+                                }
+                            });
+                    }
             }
         });
 
