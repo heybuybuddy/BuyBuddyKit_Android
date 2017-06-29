@@ -127,7 +127,6 @@ public class BuyBuddyHitagReleaser {
 
     private RxBleClient rxBleClient;
     private Subscription scanSubscription, connectionStateSubscription, notificationStateSubscribtion, comminicationSubscription;
-    private ArrayList<Subscription> subscriptionsList;
     private PublishSubject<Void> disconnectTriggerSubject = PublishSubject.create();
     private PublishSubject<Void> scanUnsubscriber = PublishSubject.create();
     private PublishSubject<Void> cancelListener = PublishSubject.create();
@@ -140,9 +139,8 @@ public class BuyBuddyHitagReleaser {
 
     public static void startReleasing(final long order_id, final Context ctx) {
         if (mInstance != null) {
+            mInstance.doUnSubscribe();
             mInstance.cancelProcesses();
-            mInstance.cancelResponseHandler();
-            mInstance.triggerDisconnect();
             mInstance.cancelListeningCharacteristic();
         }
         mInstance = new BuyBuddyHitagReleaser();
@@ -179,7 +177,6 @@ public class BuyBuddyHitagReleaser {
                     }else {
                         mInstance.delegate.error(new HitagReleaserError("Unknown Error", 900));
                     }
-
                 }
             }
         });
@@ -188,12 +185,6 @@ public class BuyBuddyHitagReleaser {
         mInstance.hitagScanTimeoutHandler  = new Handler();
         mInstance.connectionTimeoutHandler = new Handler();
         mInstance.processTimeoutHandler = new Handler();
-
-
-        mInstance.subscriptionsList = new ArrayList<>();
-        mInstance.subscriptionsList.add(mInstance.connectionStateSubscription);
-        mInstance.subscriptionsList.add(mInstance.notificationStateSubscribtion);
-        mInstance.subscriptionsList.add(mInstance.comminicationSubscription);
     }
 
 
@@ -445,51 +436,24 @@ public class BuyBuddyHitagReleaser {
             });
     }
 
-    private static class HitagReleaserError {
-        private String detail;
-        private int code;
-
-        public String getDetail() {
-            return detail;
-        }
-
-        public int getCode() {
-            return code;
-        }
-
-        public HitagReleaserError(String detail, int code) {
-            this.detail = detail;
-            this.code = code;
-        }
-    }
-
-    public class ReleaseInfo {
-        Set<String> completedHitags;
-        Set<String> incompletedHitags;
-
-        ReleaseInfo(){
-            completedHitags = new HashSet<>();
-            incompletedHitags = new HashSet<>();
-        }
-
-        ReleaseInfo addCompleted(String hitagId) {
-            this.completedHitags.add(hitagId);
-            return this;
-        }
-
-        ReleaseInfo addIncompleted(String hitagId) {
-            this.incompletedHitags.add(hitagId);
-            return this;
-        }
-    }
-
     private void doUnSubscribe() {
-        for (Subscription subscription : subscriptionsList) {
-            if (subscription != null) {
-                if (!subscription.isUnsubscribed())
-                    subscription.unsubscribe();
-            }
-        }
+
+        if (scanSubscription != null)
+            scanSubscription.unsubscribe();
+
+        if (connectionObservable != null)
+            connectionObservable.doOnNext(null);
+
+        if (connectionStateSubscription != null)
+            connectionStateSubscription.unsubscribe();
+
+        if (notificationStateSubscribtion != null)
+            notificationStateSubscribtion.unsubscribe();
+
+        if (comminicationSubscription != null)
+            comminicationSubscription.unsubscribe();
+
+        triggerDisconnect();
     }
 
     private void nextDevice(boolean withError, boolean forceStop) {
@@ -500,7 +464,6 @@ public class BuyBuddyHitagReleaser {
         cancelResponseHandler();
         cancelListeningCharacteristic();
         doUnSubscribe();
-        triggerDisconnect();
 
         connecting = false;
 
@@ -644,6 +607,43 @@ public class BuyBuddyHitagReleaser {
             nextDevice(true);
         }
     };
+
+    private static class HitagReleaserError {
+        private String detail;
+        private int code;
+
+        public String getDetail() {
+            return detail;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public HitagReleaserError(String detail, int code) {
+            this.detail = detail;
+            this.code = code;
+        }
+    }
+    public class ReleaseInfo {
+        Set<String> completedHitags;
+        Set<String> incompletedHitags;
+
+        ReleaseInfo(){
+            completedHitags = new HashSet<>();
+            incompletedHitags = new HashSet<>();
+        }
+
+        ReleaseInfo addCompleted(String hitagId) {
+            this.completedHitags.add(hitagId);
+            return this;
+        }
+
+        ReleaseInfo addIncompleted(String hitagId) {
+            this.incompletedHitags.add(hitagId);
+            return this;
+        }
+    }
 
 
 }
