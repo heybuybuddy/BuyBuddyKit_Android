@@ -13,7 +13,22 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <service android:name=".HitagScanService" />
+        <service android:name="co.buybuddy.sdk.HitagScanService"
+            android:exported="true"
+            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
+            android:enabled="true"
+            >
+        </service>
+
+        <receiver android:name="co.buybuddy.sdk.BuyBuddyBroadCastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

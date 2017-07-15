@@ -1,30 +1,20 @@
 package co.buybuddy.sampledelegateapp;
 
-import android.animation.Animator;
-import android.app.DownloadManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import com.polidea.rxandroidble.RxBleClient;
-import com.polidea.rxandroidble.scan.ScanFilter;
-import com.polidea.rxandroidble.scan.ScanResult;
-import com.polidea.rxandroidble.scan.ScanSettings;
-
-import co.buybuddy.android.BuyBuddy;
-import co.buybuddy.android.BuyBuddyHitagReleaser;
-import co.buybuddy.android.BuyBuddyShoppingCartManager;
-import co.buybuddy.android.BuyBuddyUtil;
-import co.buybuddy.android.HitagScanService;
-import co.buybuddy.android.interfaces.BuyBuddyApiCallback;
-import co.buybuddy.android.responses.BuyBuddyApiError;
-import co.buybuddy.android.responses.BuyBuddyApiObject;
-import co.buybuddy.android.model.BuyBuddyItem;
-import co.buybuddy.android.responses.OrderDelegate;
-import okhttp3.internal.Util;
-import rx.functions.Action1;
+import co.buybuddy.sdk.BuyBuddy;
+import co.buybuddy.sdk.BuyBuddyHitagReleaser;
+import co.buybuddy.sdk.BuyBuddyUtil;
+import co.buybuddy.sdk.HitagScanService;
+import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
+import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.sdk.responses.BuyBuddyApiError;
+import co.buybuddy.sdk.responses.BuyBuddyApiObject;
+import co.buybuddy.sdk.model.BuyBuddyItem;
+import co.buybuddy.sdk.responses.OrderDelegate;
 
 import static android.view.View.GONE;
 
@@ -60,11 +50,11 @@ public class MainActivity extends AppCompatActivity {
         BuyBuddy.getInstance().api.getProductWithHitagId(BuyBuddyUtil.isValidPatternForHitag("01-0000-0007"), new BuyBuddyApiCallback<BuyBuddyItem>() {
             @Override
             public void success(BuyBuddyApiObject<BuyBuddyItem> response) {
-                //Log.i("ITEM :", response.getData().toString());
+                //Log.i("ITEM :", Buyresponse.getData().toString());
 
                 final BuyBuddyItem six = response.getData();
                 totalBasket += six.getPrice().getCurrentPrice();
-                BuyBuddyShoppingCartManager._instance.basket.put(six.getHitagId(),six);
+                BuyBuddy.getInstance().shoppingCart.addToBasket(six);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -77,6 +67,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void error(BuyBuddyApiError error) {
+
+            }
+        });
+
+        BuyBuddy.getInstance().api.setInvalidationTokenDelegate(
+                new BuyBuddyUserTokenExpiredDelegate() {
+            @Override
+            public void tokenExpired() {
 
             }
         });
@@ -128,7 +126,22 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        BuyBuddyHitagReleaser.startReleasing(orderId, MainActivity.this);
+                        BuyBuddyHitagReleaser.startReleasing(orderId, MainActivity.this, new BuyBuddyHitagReleaser.Delegate() {
+                            @Override
+                            public void statusUpdate(String hitagId, BuyBuddyHitagReleaser.Status hitagStatus) {
+
+                            }
+
+                            @Override
+                            public void completed(String hitagID) {
+
+                            }
+
+                            @Override
+                            public void error(BuyBuddyHitagReleaser.HitagReleaserError error) {
+
+                            }
+                        });
                     }
                 });
             }
