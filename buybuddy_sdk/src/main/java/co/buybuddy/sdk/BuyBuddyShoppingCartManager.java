@@ -24,13 +24,14 @@ public class BuyBuddyShoppingCartManager {
 
     public boolean addToBasket(BuyBuddyItem item){
         if (basket != null) {
+            if(HitagScanService.validateActiveHitag(item.getHitagId()))
             basket.put(item.getHitagId(),item);
             return true;
         }
         return false;
     }
 
-    public boolean removeToBasket(String hitagId) {
+    public boolean removeFromBasket(String hitagId) {
         if (basket != null) {
             if (basket.get(hitagId) != null) {
                 basket.remove(hitagId);
