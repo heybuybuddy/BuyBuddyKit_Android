@@ -31,6 +31,14 @@ public class BuyBuddyShoppingCartManager {
         return false;
     }
 
+    public boolean containsId(String hitagId){
+        if (basket != null) {
+            if(basket.containsKey(hitagId))
+            return true;
+        }
+        return false;
+    }
+
     public boolean removeFromBasket(String hitagId) {
         if (basket != null) {
             if (basket.get(hitagId) != null) {
