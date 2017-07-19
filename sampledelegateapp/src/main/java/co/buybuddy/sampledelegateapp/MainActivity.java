@@ -47,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
         btnCreateOrder.setVisibility(GONE);
 
 
+        BuyBuddy.getInstance().shoppingCart.getItems();
+
+
         BuyBuddy.getInstance().api.getProductWithHitagId(BuyBuddyUtil.isValidPatternForHitag("01-0000-0007"), new BuyBuddyApiCallback<BuyBuddyItem>() {
             @Override
             public void success(BuyBuddyApiObject<BuyBuddyItem> response) {
