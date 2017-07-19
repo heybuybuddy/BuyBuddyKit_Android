@@ -2,6 +2,7 @@ package co.buybuddy.sdk;
 
 import android.content.Context;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -19,6 +20,14 @@ public final class BuyBuddyShoppingCartManager {
 
     private Float totPrice = 0.0f;
 
+    public ArrayList<BuyBuddyItem> getItems() {
+        if (basket != null) {
+            return (ArrayList<BuyBuddyItem>) basket.values();
+        }
+
+        return new ArrayList<>();
+    }
+
     BuyBuddyShoppingCartManager() {
         basket = new HashMap<>();
         automatic_basket = new HashMap<>();
@@ -28,6 +37,15 @@ public final class BuyBuddyShoppingCartManager {
         if (basket != null) {
             if(HitagScanService.validateActiveHitag(item.getHitagId()))
             basket.put(item.getHitagId(),item);
+
+            return true;
+        }
+        return false;
+    }
+
+    public boolean containsId(String hitagId){
+        if (basket != null) {
+            if(basket.containsKey(hitagId))
             return true;
         }
         return false;
@@ -58,9 +76,5 @@ public final class BuyBuddyShoppingCartManager {
 
         return  totPrice;
     }
-
-
-
-
 
 }

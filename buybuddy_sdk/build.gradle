@@ -45,7 +45,7 @@ dependencies {
 
 def libraryGroupId = 'co.buybuddy.sdk'
 def libraryArtifactId = 'buybuddykit'
-def libraryVersion = '1.0.0'
+def libraryVersion = '1.0.1'
 
 publishing {
     publications {
