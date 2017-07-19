@@ -13,14 +13,14 @@ import java.util.Map;
  * Gururla sunar. AHAHAHAHA Some spagetties
  */
 
-public final class CollectedHitagTS extends CollectedHitag {
+final class CollectedHitagTS extends CollectedHitag {
     private long lastSeen;
 
-    public long getLastSeen() {
+    long getLastSeen() {
         return lastSeen;
     }
 
-    public void setLastSeen(long lastSeen) {
+    void setLastSeen(long lastSeen) {
         this.lastSeen = lastSeen;
     }
 
@@ -36,11 +36,11 @@ public final class CollectedHitagTS extends CollectedHitag {
                 .setValidationCode(getValidationCode());
     }
 
-    CollectedHitagTS(int rssi) {
+    private CollectedHitagTS(int rssi) {
         super(rssi);
     }
 
-    public RxBleDevice getDevice() {
+    RxBleDevice getDevice() {
         return device;
     }
 
@@ -61,7 +61,7 @@ public final class CollectedHitagTS extends CollectedHitag {
         return this;
     }
 
-    public CollectedHitagTS setDevice(RxBleDevice device) {
+    CollectedHitagTS setDevice(RxBleDevice device) {
         this.device = device;
         return this;
     }
@@ -73,7 +73,7 @@ public final class CollectedHitagTS extends CollectedHitag {
     }
 
     @Nullable
-    public static CollectedHitagTS getHitag(RxBleDevice device, byte scanRecord[], int rssi) {
+    static CollectedHitagTS getHitag(RxBleDevice device, byte scanRecord[], int rssi) {
 
         if (scanRecord == null)
             return null;

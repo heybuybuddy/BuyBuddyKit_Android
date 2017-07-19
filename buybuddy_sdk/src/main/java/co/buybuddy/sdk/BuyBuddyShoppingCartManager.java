@@ -12,14 +12,16 @@ import co.buybuddy.sdk.model.BuyBuddyItem;
  * Created by Emir on 29/06/2017.
  */
 
-public class BuyBuddyShoppingCartManager {
+public final class BuyBuddyShoppingCartManager {
 
-    private static Context mContext;
+    private static Map<String, BuyBuddyItem> automatic_basket;
     private static Map<String, BuyBuddyItem> basket;
+
     private Float totPrice = 0.0f;
 
     BuyBuddyShoppingCartManager() {
         basket = new HashMap<>();
+        automatic_basket = new HashMap<>();
     }
 
     public boolean addToBasket(BuyBuddyItem item){

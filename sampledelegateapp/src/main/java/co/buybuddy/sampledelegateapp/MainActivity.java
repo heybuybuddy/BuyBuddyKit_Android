@@ -7,6 +7,7 @@ import android.widget.Button;
 
 import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.BuyBuddyHitagReleaser;
+import co.buybuddy.sdk.BuyBuddyShoppingCartManager;
 import co.buybuddy.sdk.BuyBuddyUtil;
 import co.buybuddy.sdk.HitagScanService;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
@@ -45,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
                 .setSandBoxMode(true);
 
         btnCreateOrder.setVisibility(GONE);
-
 
         BuyBuddy.getInstance().api.getProductWithHitagId(BuyBuddyUtil.isValidPatternForHitag("01-0000-0007"), new BuyBuddyApiCallback<BuyBuddyItem>() {
             @Override

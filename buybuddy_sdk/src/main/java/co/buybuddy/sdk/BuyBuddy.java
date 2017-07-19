@@ -15,7 +15,7 @@ public class BuyBuddy {
     private static Context mContext;
     private static BuyBuddy _instance;
     public final BuyBuddyApi api;
-    public final RxBleClient client;
+    final RxBleClient client;
     public final BuyBuddyShoppingCartManager shoppingCart;
 
     private BuyBuddy(){

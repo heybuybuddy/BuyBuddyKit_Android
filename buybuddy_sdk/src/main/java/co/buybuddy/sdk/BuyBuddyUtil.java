@@ -25,7 +25,7 @@ public final class BuyBuddyUtil {
                 .getSharedPreferences(BUYBUDDY_SP_PREFIX, Context.MODE_PRIVATE);
     }
 
-    public static final long HITAG_MANAGER_ALARM_INTERVAL = 60000;
+    static final long HITAG_MANAGER_ALARM_INTERVAL = 60000;
     public static final long HITAG_BLE_SCAN_INTERVAL = 800;
     private static boolean DEBUG = true;
 
@@ -44,10 +44,7 @@ public final class BuyBuddyUtil {
         String regexStr = "([0-9A-Fa-f]{2})[-]([0-9A-Fa-f]{4})[-]([0-9A-Fa-f]{4})";
 
         if(hitagId.matches(regexStr)){
-
-            String replaceHitagId = hitagId.replace("-","");
-
-            return replaceHitagId;
+            return hitagId.replace("-","");
         }
 
         return null;

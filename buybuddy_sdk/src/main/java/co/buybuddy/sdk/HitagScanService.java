@@ -13,12 +13,20 @@ import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import com.koushikdutta.async.ByteBufferList;
+import com.koushikdutta.async.DataEmitter;
+import com.koushikdutta.async.callback.DataCallback;
+import com.koushikdutta.async.http.AsyncHttpClient;
+import com.koushikdutta.async.http.AsyncHttpResponse;
+import com.koushikdutta.async.http.WebSocket;
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.exceptions.BleScanException;
 import com.polidea.rxandroidble.scan.ScanFilter;
 import com.polidea.rxandroidble.scan.ScanResult;
 import com.polidea.rxandroidble.scan.ScanSettings;
 
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,7 +70,6 @@ final public class HitagScanService extends Service {
     static Map<String, CollectedHitagTS> activeHitags;
     static Map<String, CollectedHitagTS> passiveHitags;
     static ArrayList<CollectedHitag> collectedHitags;
-
 
     @Override
     public void onCreate() {
@@ -302,6 +309,35 @@ final public class HitagScanService extends Service {
             passiveHitags.clear();
             passiveHitags = null;
         }
+    }
+
+    private void connectToVirtualBasketSocket() {
+        AsyncHttpClient.getDefaultInstance().websocket("SOCKET URL", null, new AsyncHttpClient.WebSocketConnectCallback() {
+            @Override
+            public void onCompleted(Exception ex, WebSocket webSocket) {
+
+                if (ex != null) {
+                    ex.printStackTrace();
+                    return;
+                }
+                webSocket.send("a string");
+                webSocket.send(new byte[10]);
+                webSocket.setStringCallback(new WebSocket.StringCallback() {
+                    public void onStringAvailable(String s) {
+                        System.out.println("I got a string: " + s);
+                    }
+                });
+
+                webSocket.setDataCallback(new DataCallback() {
+                    public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
+                        System.out.println("I got some bytes!");
+                        // note that this data has been read
+                        byteBufferList.recycle();
+                    }
+                });
+
+            }
+        });
     }
 
     @Nullable

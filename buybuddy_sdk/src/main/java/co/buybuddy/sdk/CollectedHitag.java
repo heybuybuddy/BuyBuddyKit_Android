@@ -16,19 +16,19 @@ class CollectedHitag {
         return this;
     }
 
-    public int getRssi() {
+    int getRssi() {
         return rssi;
     }
 
-    public int getTxPower() {
+    int getTxPower() {
         return txPower;
     }
 
-    public int getValidationCode() {
+    int getValidationCode() {
         return validationCode;
     }
 
-    public int getBattery() {
+    int getBattery() {
         return battery;
     }
 

@@ -9,7 +9,7 @@ import com.polidea.rxandroidble.exceptions.BleScanException;
  * Gururla sunar. AHAHAHAHA Some spagetties
  */
 
-public class BuyBuddyBleUtils {
+class BuyBuddyBleUtils {
     static final String MAIN_PREFIX = "0000beef";
     static final String MAIN_POSTFIX = "-6275-7962-7564-647966656565";
 
@@ -63,7 +63,7 @@ public class BuyBuddyBleUtils {
         }
     }
 
-    public static byte[] parseHexBinary(String s) {
+    static byte[] parseHexBinary(String s) {
         final int len = s.length();
 
         // "111" is not a valid hex encoding.
