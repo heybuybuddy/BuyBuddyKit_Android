@@ -20,6 +20,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
 }
 
 dependencies {
@@ -29,7 +35,13 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha9'
+    compile 'org.greenrobot:eventbus:3.0.0'
+
+    compile('com.github.eoinsha:JavaPhoenixChannels:0.2') {
+        exclude module: 'groovy-all'
+    }
+
     testCompile 'junit:junit:4.12'
-    compile project(':buybuddy_sdk')
+    //compile project(':buybuddy_sdk')
     compile 'com.android.support:recyclerview-v7:25.3.1'
 }
