@@ -6,8 +6,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
 
-import com.polidea.rxandroidble.RxBleClient;
-
 import org.greenrobot.eventbus.EventBus;
 
 import co.buybuddy.sdk.util.BuyBuddyError;
@@ -23,13 +21,11 @@ public class BuyBuddy {
     private static Context mContext;
     private static BuyBuddy _instance;
     public final BuyBuddyApi api;
-    final RxBleClient client;
     public final BuyBuddyShoppingCartManager shoppingCart;
     private LocationServicesStatus locationServicesStatus;
 
     private BuyBuddy(){
         api = new BuyBuddyApi();
-        client = RxBleClient.create(getContext());
         shoppingCart = new BuyBuddyShoppingCartManager();
 
         locationServicesStatus = new LocationServicesStatus(

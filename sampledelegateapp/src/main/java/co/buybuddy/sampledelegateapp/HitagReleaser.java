@@ -544,7 +544,7 @@ public class HitagReleaser {
     private TimerTask hitagResponseTimeoutRunnable = new TimerTask() {
         @Override
         public void run() {
-            BuyBuddyUtil.printD(TAG, currentHitagId + " Timeout: Hitag State");
+            BuyBuddyUtil.printD(TAG, currentHitagId + " Timeout: Hitag HitagState");
             nextDevice(true);
         }
     };

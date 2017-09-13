@@ -9,7 +9,6 @@ import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.os.Handler;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -21,9 +20,6 @@ import co.buybuddy.sdk.model.HitagPasswordPayload;
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
 import static android.bluetooth.BluetoothProfile.STATE_CONNECTED;
 import static co.buybuddy.sdk.ble.Hitag.Characteristic.PASSWORD;
-import static co.buybuddy.sdk.ble.Hitag.State.PASSWORD_FIRST_PAYLOAD;
-import static co.buybuddy.sdk.ble.Hitag.State.PASSWORD_IN_PROGRESS;
-import static co.buybuddy.sdk.ble.Hitag.State.PASSWORD_SECOND_PAYLOAD;
 
 /**
  * Created by Furkan Ençkü on 8/22/17.
@@ -53,7 +49,7 @@ class Hitag {
     }
 
     private int connectionState = BluetoothGatt.STATE_DISCONNECTED;
-    private State currentState = State.INITIALIZING;
+    private HitagState currentState = HitagState.INITIALIZING;
 
     public int getConnectionState() {
         return connectionState;
@@ -66,7 +62,7 @@ class Hitag {
         hitagGatt = device.connectGatt(ctx, false, mCallBack);
         htgCharacters = new HashMap<>();
 
-        connectionTimeoutHandler.postDelayed(timeOutRunnable, 10000);
+        //connectionTimeoutHandler.postDelayed(timeOutRunnable, 10000);
         startedAt = System.currentTimeMillis();
     }
 
@@ -129,7 +125,7 @@ class Hitag {
         return this;
     }
 
-    public State getCurrentState() {
+    public HitagState getCurrentState() {
         return currentState;
     }
 
@@ -139,7 +135,7 @@ class Hitag {
 
     public boolean releaseHitag(HitagPasswordPayload password) {
         this.password = password;
-        this.currentState = PASSWORD_IN_PROGRESS;
+        this.currentState = HitagState.PASSWORD_IN_PROGRESS;
 
         if (htgCharacters.get(PASSWORD) != null) {
 
@@ -287,98 +283,46 @@ class Hitag {
 
                     final byte value[] = characteristic.getValue();
 
-                    if (State.compare(PASSWORD_FIRST_PAYLOAD, value)) {
+                    if (HitagState.compare(HitagState.PASSWORD_FIRST_PAYLOAD, value)) {
 
                         notifyTimeoutHandler.removeCallbacks(notifyRunnable);
                         notifyTimeoutHandler.postDelayed(notifyRunnable, 3000);
 
-                        currentState = PASSWORD_FIRST_PAYLOAD;
+                        currentState = HitagState.PASSWORD_FIRST_PAYLOAD;
 
                         htgCharacters.get(PASSWORD).setValue(BuyBuddyBleUtils.parseHexBinary(password.getSecond()));
 
                         hitagGatt.writeCharacteristic(htgCharacters.get(PASSWORD));
 
-                    }else if (State.compare(PASSWORD_SECOND_PAYLOAD, value)) {
+                    }else if (HitagState.compare(HitagState.PASSWORD_SECOND_PAYLOAD, value)) {
 
                         notifyTimeoutHandler.removeCallbacks(notifyRunnable);
                         notifyTimeoutHandler.postDelayed(notifyRunnable, 3000);
 
-                        currentState = PASSWORD_SECOND_PAYLOAD;
+                        currentState = HitagState.PASSWORD_SECOND_PAYLOAD;
 
                         htgCharacters.get(PASSWORD).setValue(BuyBuddyBleUtils.parseHexBinary(password.getThird()));
 
                         hitagGatt.writeCharacteristic(htgCharacters.get(PASSWORD));
 
-                    }else if (State.compare(State.RELEASE_PROCESS_STARTING, value)) {
+                    }else if (HitagState.compare(HitagState.RELEASE_PROCESS_STARTING, value)) {
 
-                    }else if (State.compare(State.STATE_UNLOCKING, value)) {
+                    }else if (HitagState.compare(HitagState.STATE_UNLOCKING, value)) {
 
-                        currentState = State.STATE_UNLOCKING;
+                        currentState = HitagState.STATE_UNLOCKING;
 
                         notifyTimeoutHandler.removeCallbacks(notifyRunnable);
                         notifyTimeoutHandler.postDelayed(notifyRunnable, 10000);
 
-                    }else if (State.compare(State.STATE_UNLOCKED, value)) {
+                    }else if (HitagState.compare(HitagState.STATE_UNLOCKED, value)) {
 
-                        currentState = State.STATE_UNLOCKED;
+                        currentState = HitagState.STATE_UNLOCKED;
                         notifyTimeoutHandler.removeCallbacks(notifyRunnable);
                     }
                 }
             }
         }
     };
-
-    public enum State {
-
-        PASSWORD_IN_PROGRESS("IN_PROGRESS"),
-        PASSWORD_FIRST_PAYLOAD("01EE"),
-        PASSWORD_SECOND_PAYLOAD("02EE"),
-        PASSWORD_THIRD_PAYLOAD("03EE"),
-
-        STATE_LOCKED("10"),
-        STATE_LOCKING("11"),
-        STATE_UNLOCKED("20"),
-        STATE_UNLOCKING("21"),
-
-        PASSWORD_OLD("04"),
-        PASSWORD_WRONG("05"),
-
-        RELEASE_PROCESS_STARTING("00"),
-        RELEASE_VALIDATION_SUCCESS("01"),
-        RELEASE_VALIDATION_FAILED("02"),
-
-        PIN_WAITING_FOR_UNLOCK("31"),
-        PIN_WAITING_FOR_LOCK("30"),
-
-        STATE_BUGGY("FF"),
-        STATE_NONE("FE"),
-        STATE_PIN_INSIDE("FD"),
-        STATE_PIN_OUTSIDE("FC"),
-
-        FLASH_ERROR("F1"),
-        FLASH_ERROR2("F2"),
-
-        ERROR("FFFF"),
-        UNKNOWN(""),
-
-        CONNECTED("CONNECTED"),
-        DISCONNECTED("DISCONNECTED"),
-
-        INITIALIZING("init"),
-
-        NOT_FOUND("NOT_FOUND"),
-        CONNECTION_FAILED("CONNECTION_FAILED");
-
-        State(String response) {
-            this.byteArray = BuyBuddyBleUtils.parseHexBinary(response);
-        }
-
-        private byte[] byteArray;
-
-        public static boolean compare(State response, byte[] value) {
-            return Arrays.equals(response.byteArray, value);
-        }
-    }
 
     enum Characteristic {
 
@@ -454,7 +398,8 @@ class Hitag {
         void connectionStateChanged(String hitagId, int state);
         void onCharacteristicUpdate(String hitagId, Hitag.Characteristic chars, byte[] value);
         void onCharacteristicRead(String hitagId, Hitag.Characteristic chars, byte[] value);
-        void onDeviceStuck(String hitagId, State state);
+        void onDeviceStuck(String hitagId, HitagState state);
     }
 
 }
+

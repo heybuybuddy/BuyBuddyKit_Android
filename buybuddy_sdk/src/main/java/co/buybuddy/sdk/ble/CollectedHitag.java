@@ -6,8 +6,9 @@ public class CollectedHitag {
     private String id; // 0100000001
     private int rssi;
     private int txPower;
-    private int validationCode = -1;
     private int battery;
+    private boolean isVibrating = false;
+    private int pinState = 5;
 
     public String getId() {
         return id.toUpperCase();
@@ -26,16 +27,20 @@ public class CollectedHitag {
         return txPower;
     }
 
-    public int getValidationCode() {
-        return validationCode;
-    }
-
     int getBattery() {
         return battery;
     }
 
     CollectedHitag(int rssi){
         this.rssi = rssi;
+    }
+
+    public int getPinState() {
+        return pinState;
+    }
+
+    public boolean isVibrating() {
+        return isVibrating;
     }
 
     public CollectedHitag setBattery(int battery) {
@@ -53,8 +58,13 @@ public class CollectedHitag {
         return this;
     }
 
-    public CollectedHitag setValidationCode(int validationCode) {
-        this.validationCode = validationCode;
+    public CollectedHitag setVibration(boolean isVibrating) {
+        this.isVibrating = isVibrating;
+        return this;
+    }
+
+    public CollectedHitag setPinState(int pinState) {
+        this.pinState = pinState;
         return this;
     }
 
@@ -63,7 +73,6 @@ public class CollectedHitag {
         return "HitagId   : " + BuyBuddyUtil.w(id)      + "\n"  +
                "Rssi : "      + BuyBuddyUtil.w(rssi)    + "\n"  +
                "TxPower : "   + BuyBuddyUtil.w(txPower) + "\n"  +
-               "Battery : "   + BuyBuddyUtil.w(battery) + "\n"  +
-               "ValidCode : " + BuyBuddyUtil.w(validationCode);
+               "Battery : "   + BuyBuddyUtil.w(battery);
     }
 }

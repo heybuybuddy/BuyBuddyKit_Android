@@ -8,10 +8,10 @@ package co.buybuddy.sdk.ble;
 class HitagEventFromService {
 
     final String hitagId;
-    final Hitag.State event;
+    final HitagState event;
     int eventType = 0;
 
-    HitagEventFromService(String hitagId, Hitag.State event) {
+    HitagEventFromService(String hitagId, HitagState event) {
         this.hitagId = hitagId;
         this.event = event;
     }

@@ -2,6 +2,7 @@ package co.buybuddy.sdk;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import org.json.JSONObject;
 
@@ -85,6 +86,7 @@ class BuyBuddyEndpoint {
 
                     JSONObject json = new JSONObject(jsonBody);
                     jsonString = json.toString();
+
                     BuyBuddyUtil.printD("Endpoint", jsonString);
                 }
             }

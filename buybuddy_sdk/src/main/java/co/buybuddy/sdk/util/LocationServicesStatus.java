@@ -2,10 +2,6 @@ package co.buybuddy.sdk.util;
 
 import android.os.Build;
 
-import com.polidea.rxandroidble.ClientComponent;
-
-import javax.inject.Inject;
-
 /**
  * Created by Furkan Ençkü on 9/13/17.
  * This code written by buybuddy Android Team

@@ -1,8 +1,8 @@
 package co.buybuddy.sdk.ble;
 
+import android.bluetooth.BluetoothDevice;
 import android.support.annotation.Nullable;
-
-import com.polidea.rxandroidble.RxBleDevice;
+import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,28 +20,24 @@ public final class CollectedHitagTS extends CollectedHitag {
         return lastSeen;
     }
 
+    private BluetoothDevice device;
+
     public void setLastSeen(long lastSeen) {
         this.lastSeen = lastSeen;
     }
 
     private static final int MANUFACTURER_DATA = -1;
     private static final int TX_POWER = 10;
-    private RxBleDevice device;
 
     public CollectedHitag getWithoutTS(){
         return new CollectedHitag(this.getRssi())
                 .setBattery(getBattery())
                 .setId(getId())
-                .setTxPower(getTxPower())
-                .setValidationCode(getValidationCode());
+                .setTxPower(getTxPower());
     }
 
     private CollectedHitagTS(int rssi) {
         super(rssi);
-    }
-
-    public RxBleDevice getDevice() {
-        return device;
     }
 
     @Override
@@ -61,19 +57,25 @@ public final class CollectedHitagTS extends CollectedHitag {
         return this;
     }
 
-    CollectedHitagTS setDevice(RxBleDevice device) {
+    CollectedHitagTS setDevice(BluetoothDevice device) {
         this.device = device;
         return this;
     }
 
     @Override
-    public CollectedHitagTS setValidationCode(int validationCode) {
-        super.setValidationCode(validationCode);
+    public CollectedHitagTS setVibration(boolean isVibrating) {
+         super.setVibration(isVibrating);
+        return this;
+    }
+
+    @Override
+    public CollectedHitagTS setPinState(int pinState) {
+        super.setPinState(pinState);
         return this;
     }
 
     @Nullable
-    public static CollectedHitagTS getHitag(RxBleDevice device, byte scanRecord[], int rssi) {
+    public static CollectedHitagTS getHitag(BluetoothDevice device, byte scanRecord[], int rssi) {
 
         if (scanRecord == null)
             return null;
@@ -122,7 +124,8 @@ public final class CollectedHitagTS extends CollectedHitag {
                         int txPower =  recordMap.get(TX_POWER)
                                                 != null ? (256 - Integer.parseInt(recordMap.get(TX_POWER), 16)) : -90; //TX POWER NORMAL VALUE -91
                         int battery = 0;
-                        int validationCode = 0;
+                        boolean isFastAdvertising = false;
+                        int pinStatus = 5;
 
                         deviceID = null;
 
@@ -130,13 +133,22 @@ public final class CollectedHitagTS extends CollectedHitag {
                             if (manufacturerData.length() == 26) {
                                 String devicePostfix = manufacturerData.substring(12, 20);
                                 String devicePrefix = "01";
-                                String validation = manufacturerData.substring(10, 12) + manufacturerData.substring(8, 10);
-                                validationCode = Integer.parseInt(validation, 16);
+
                                 String reOrderedPostfix = "";
 
                                 for (int i = 8; i >= 2; i -= 2) {
                                     reOrderedPostfix += devicePostfix.substring(i-2, i);
                                 }
+
+                                try {
+                                    pinStatus = Integer.parseInt(manufacturerData.substring(0,2));
+                                    battery = Integer.parseInt(manufacturerData.substring(6, 8));
+                                } catch(NumberFormatException ex ){
+                                    ex.printStackTrace();
+                                }
+
+                                isFastAdvertising = manufacturerData.substring(2,4).equals("EE");
+
 
                                 deviceID = devicePrefix + reOrderedPostfix;
                                 deviceID = deviceID.toUpperCase();
@@ -146,9 +158,10 @@ public final class CollectedHitagTS extends CollectedHitag {
                         if (deviceID != null) {
                             hitag = new CollectedHitagTS(rssi)
                                             .setDevice(device)
-                                            .setValidationCode(validationCode)
                                             .setId(deviceID)
                                             .setTxPower(txPower)
+                                            .setVibration(isFastAdvertising)
+                                            .setPinState(pinStatus)
                                             .setBattery(battery);
 
                             return hitag;

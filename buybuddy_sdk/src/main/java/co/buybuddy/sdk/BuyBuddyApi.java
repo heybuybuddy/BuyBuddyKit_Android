@@ -166,7 +166,7 @@ public final class BuyBuddyApi {
         if (response.body() != null){
             responseStr = response.body().string();
         }else {
-            throw new BuyBuddyApiError("-0002", "State Body Null", response.code());
+            throw new BuyBuddyApiError("-0002", "HitagState Body Null", response.code());
         }
 
         if (response.isSuccessful()){

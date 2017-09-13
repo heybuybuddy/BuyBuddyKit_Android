@@ -3,7 +3,7 @@ package co.buybuddy.sdk.ble;
 import android.os.Build;
 import android.util.Log;
 
-import com.polidea.rxandroidble.exceptions.BleScanException;
+import co.buybuddy.sdk.ble.exception.BleScanException;
 
 public class BuyBuddyBleUtils {
 

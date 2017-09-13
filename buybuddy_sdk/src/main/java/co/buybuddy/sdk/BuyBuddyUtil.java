@@ -41,7 +41,7 @@ public final class BuyBuddyUtil {
 
     public static String isValidPatternForHitag(String hitagId){
 
-        String regexStr = "([0-9A-Fa-f]{2})[-]([0-9A-Fa-f]{4})[-]([0-9A-Fa-f]{4})";
+        String regexStr = "([A-Za-z]{4})([0-9]{5})";
 
         if(hitagId.matches(regexStr)){
             return hitagId.replace("-","");

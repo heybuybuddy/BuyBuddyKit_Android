@@ -25,7 +25,7 @@ public abstract class BuyBuddyHitagReleaserDelegate implements IBuyBuddyHitagRel
      */
 
     @Override
-    public void onHitagFailed(String hitagId, Hitag.State event) {
+    public void onHitagFailed(String hitagId, HitagState event) {
 
     }
 
@@ -38,7 +38,7 @@ public abstract class BuyBuddyHitagReleaserDelegate implements IBuyBuddyHitagRel
      */
 
     @Override
-    public void onHitagEvent(String hitagId, Hitag.State event) {
+    public void onHitagEvent(String hitagId, HitagState event) {
 
     }
 

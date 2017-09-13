@@ -1,0 +1,75 @@
+"main@4370" prio=5 tid=0x1 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	  at co.buybuddy.sdk.BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.java:78)
+	  at co.buybuddy.sdk.BuyBuddyApi.postScanRecord(BuyBuddyApi.java:229)
+	  at co.buybuddy.sdk.HitagScanService.startReporter(HitagScanService.java:277)
+	  at co.buybuddy.sdk.HitagScanService.access$300(HitagScanService.java:47)
+	  at co.buybuddy.sdk.HitagScanService$4.run(HitagScanService.java:298)
+	  at android.os.Handler.handleCallback(Handler.java:751)
+	  at android.os.Handler.dispatchMessage(Handler.java:95)
+	  at android.os.Looper.loop(Looper.java:154)
+	  at android.app.ActivityThread.main(ActivityThread.java:6119)
+	  at java.lang.reflect.Method.invoke(Method.java:-1)
+	  at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:886)
+	  at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:776)
+
+"Signal Catcher@5211" daemon prio=5 tid=0x49c nid=NA waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"ReferenceQueueDaemon@5212" daemon prio=5 tid=0x49e nid=NA waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"FinalizerDaemon@5213" daemon prio=5 tid=0x49f nid=NA waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"FinalizerWatchdogDaemon@5214" daemon prio=5 tid=0x4a0 nid=NA waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"HeapTaskDaemon@5215" daemon prio=5 tid=0x4a1 nid=NA waiting for monitor entry
+  java.lang.Thread.State: BLOCKED
+	 Incompatible thread state: thread not suspended
+
+"Binder:17637_1@5216" prio=5 tid=0x4a2 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"Binder:17637_2@5133" prio=5 tid=0x4a3 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"Profile Saver@4369" daemon prio=10 tid=0x4a4 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"Thread-3@4377" prio=5 tid=0x4a6 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"pool-2-thread-1@4850" prio=5 tid=0x4a8 nid=NA waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"OkHttp ConnectionPool@4922" daemon prio=5 tid=0x4aa nid=NA waiting
+  java.lang.Thread.State: WAITING
+	 Incompatible thread state: thread not suspended
+
+"RenderThread@5100" prio=5 tid=0x4ac nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"Binder:17637_3@5141" prio=5 tid=0x4ad nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"hwuiTask1@5180" prio=5 tid=0x4ae nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+
+"hwuiTask2@5181" prio=5 tid=0x4af nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	 Incompatible thread state: thread not suspended
+

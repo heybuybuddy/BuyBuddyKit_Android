@@ -13,7 +13,7 @@ import java.util.Set;
 import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaserDelegate;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaseManager;
-import co.buybuddy.sdk.ble.Hitag;
+import co.buybuddy.sdk.ble.HitagState;
 import co.buybuddy.sdk.ble.exception.BleScanException;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
@@ -42,9 +42,9 @@ public class MainActivity extends AppCompatActivity {
 
         manager = new BuyBuddyHitagReleaseManager();
 
-        btnReset = (Button) findViewById(R.id.btnReset);
-        btnCreateOrder = (Button) findViewById(R.id.btnCreateOrder);
-        btnRelease = (Button) findViewById(R.id.btnPay);
+        btnReset = findViewById(R.id.btnReset);
+        btnCreateOrder = findViewById(R.id.btnCreateOrder);
+        btnRelease = findViewById(R.id.btnPay);
 
         btnRelease.setVisibility(GONE);
         btnRelease.setAlpha(0);
@@ -113,14 +113,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
         btnRelease.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 manager.startReleasing(orderId).subscribeForHitagEvents(new BuyBuddyHitagReleaserDelegate() {
 
                     @Override
-                    public void onHitagEvent(String hitagId, Hitag.State event) {
+                    public void onHitagEvent(String hitagId, HitagState event) {
                         super.onHitagEvent(hitagId, event);
 
                         Log.d("*x* HitagEvent", hitagId + " " + event.name());
@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onHitagFailed(String hitagId, Hitag.State event) {
+                    public void onHitagFailed(String hitagId, HitagState event) {
                         super.onHitagFailed(hitagId, event);
 
                         Log.d("*x* Failed", "id" + hitagId + " reason :" + event);

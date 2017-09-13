@@ -49,7 +49,7 @@ import static android.bluetooth.BluetoothProfile.STATE_DISCONNECTED;
  * This code written by buybuddy Android Team
  */
 
-class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
+public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
 
 
     private static long HITAG_DEFAULT_SCAN_TIMEOUT = 10000L;
@@ -303,24 +303,24 @@ class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
         switch (state) {
             case STATE_CONNECTED:
                 BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitagId + " connected");
-                EventBus.getDefault().post(new HitagEventFromService(hitagId, Hitag.State.CONNECTED).setEventType(0));
+                EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.CONNECTED).setEventType(0));
                 break;
 
             case STATE_DISCONNECTED:
                 BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitagId + " disconnected");
-                EventBus.getDefault().post(new HitagEventFromService(hitagId, Hitag.State.DISCONNECTED).setEventType(0));
+                EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.DISCONNECTED).setEventType(0));
 
                 break;
 
             case 99: //CONNECTION UNSUCCESSFUL
 
-                if (tryingDevices.contains(hitagId) && deviceMap.get(hitagId).getCurrentState() == Hitag.State.INITIALIZING) {
+                if (tryingDevices.contains(hitagId) && deviceMap.get(hitagId).getCurrentState() == HitagState.INITIALIZING) {
                     tryCountForDevices.put(hitagId, tryCountForDevices.get(hitagId) + 1);
 
                     if (tryCountForDevices.get(hitagId) > 2) {
                         tryingDevices.remove(hitagId);
-                        failedDevices.put(hitagId, Hitag.State.CONNECTION_FAILED.ordinal());
-                        EventBus.getDefault().post(new HitagEventFromService(hitagId, Hitag.State.CONNECTION_FAILED).setEventType(1));
+                        failedDevices.put(hitagId, HitagState.CONNECTION_FAILED.ordinal());
+                        EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.CONNECTION_FAILED).setEventType(1));
                     }else {
                         if (deviceMap.get(hitagId) != null) {
                             deviceMap.remove(hitagId);
@@ -348,7 +348,7 @@ class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
 
         if (chars == Hitag.Characteristic.NOTIFIER && tryingDevices.contains(hitagId)) {
 
-            if (Hitag.State.compare(Hitag.State.STATE_UNLOCKED, value)) {
+            if (HitagState.compare(HitagState.STATE_UNLOCKED, value)) {
 
                 tryingDevices.remove(hitagId);
                 openedDevices.add(hitagId);
@@ -367,29 +367,29 @@ class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
                     }
                 });
 
-                EventBus.getDefault().post(new HitagEventFromService(hitagId, Hitag.State.STATE_UNLOCKED).setEventType(3));
+                EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.STATE_UNLOCKED).setEventType(3));
                 deviceMap.get(hitagId).disconnect();
 
-            }else if (Hitag.State.compare(Hitag.State.PASSWORD_OLD, value)) {
+            }else if (HitagState.compare(HitagState.PASSWORD_OLD, value)) {
 
                 tryingDevices.remove(hitagId);
-                failedDevices.put(hitagId, Hitag.State.PASSWORD_OLD.ordinal());
-                EventBus.getDefault().post(new HitagEventFromService(hitagId, Hitag.State.PASSWORD_OLD).setEventType(1));
+                failedDevices.put(hitagId, HitagState.PASSWORD_OLD.ordinal());
+                EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.PASSWORD_OLD).setEventType(1));
                 deviceMap.get(hitagId).disconnect();
 
-            }else if (Hitag.State.compare(Hitag.State.PASSWORD_WRONG, value) || Hitag.State.compare(Hitag.State.RELEASE_VALIDATION_FAILED, value)) {
+            }else if (HitagState.compare(HitagState.PASSWORD_WRONG, value) || HitagState.compare(HitagState.RELEASE_VALIDATION_FAILED, value)) {
 
                 tryingDevices.remove(hitagId);
-                failedDevices.put(hitagId, Hitag.State.PASSWORD_WRONG.ordinal());
-                EventBus.getDefault().post(new HitagEventFromService(hitagId, Hitag.State.PASSWORD_WRONG).setEventType(1));
+                failedDevices.put(hitagId, HitagState.PASSWORD_WRONG.ordinal());
+                EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.PASSWORD_WRONG).setEventType(1));
                 deviceMap.get(hitagId).disconnect();
 
 
-            }else if (Hitag.State.compare(Hitag.State.RELEASE_VALIDATION_SUCCESS, value)) {
+            }else if (HitagState.compare(HitagState.RELEASE_VALIDATION_SUCCESS, value)) {
 
 
-            }else if (Hitag.State.compare(Hitag.State.STATE_UNLOCKING, value)) {
-                EventBus.getDefault().post(new HitagEventFromService(hitagId, Hitag.State.STATE_UNLOCKING).setEventType(0));
+            }else if (HitagState.compare(HitagState.STATE_UNLOCKING, value)) {
+                EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.STATE_UNLOCKING).setEventType(0));
             }
         }
     }
@@ -411,9 +411,9 @@ class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
 
                 @Override
                 public void error(BuyBuddyApiError error) {
-                    EventBus.getDefault().post(new HitagEventFromService(hitagId, Hitag.State.PASSWORD_WRONG).setEventType(1));
+                    EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.PASSWORD_WRONG).setEventType(1));
                     if (tryingDevices.contains(hitagId)) {
-                        failedDevices.put(hitagId, Hitag.State.PASSWORD_WRONG.ordinal());
+                        failedDevices.put(hitagId, HitagState.PASSWORD_WRONG.ordinal());
                         tryingDevices.remove(hitagId);
                         deviceMap.get(hitagId).disconnect();
                     }
@@ -424,11 +424,11 @@ class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
     }
 
     @Override
-    public void onDeviceStuck(String hitagId, Hitag.State state) {
+    public void onDeviceStuck(String hitagId, HitagState state) {
 
         if (tryingDevices.contains(hitagId)) {
             tryingDevices.remove(hitagId);
-            failedDevices.put(hitagId, Hitag.State.STATE_BUGGY.ordinal());
+            failedDevices.put(hitagId, HitagState.STATE_BUGGY.ordinal());
 
             if (deviceMap.get(hitagId) != null)
                 deviceMap.get(hitagId).disconnect();

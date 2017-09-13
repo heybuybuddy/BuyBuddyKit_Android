@@ -15,14 +15,14 @@ import co.buybuddy.sdk.ble.exception.BleScanException;
  */
 
 interface IBuyBuddyHitagReleaser {
-    void onHitagFailed(String hitagId, Hitag.State event);
-    void onHitagEvent(String hitagId, Hitag.State event);
+    void onHitagFailed(String hitagId, HitagState event);
+    void onHitagEvent(String hitagId, HitagState event);
     void onHitagReleased(String hitagId);
     void onExceptionThrown(BleScanException exception);
     void didFinish();
 }
 
-public class BuyBuddyHitagReleaseManager {
+public final class BuyBuddyHitagReleaseManager {
 
     private BuyBuddyHitagReleaserDelegate delegate;
 
