@@ -4,8 +4,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by furkan on 6/14/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/14/17.
+ * This code written by buybuddy Android Team
  */
 
 public class OrderDelegate implements Parcelable {

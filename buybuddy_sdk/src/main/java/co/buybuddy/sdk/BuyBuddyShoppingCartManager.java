@@ -22,10 +22,23 @@ public final class BuyBuddyShoppingCartManager {
 
     public ArrayList<BuyBuddyItem> getItems() {
         if (basket != null) {
-            return (ArrayList<BuyBuddyItem>) basket.values();
+            return new ArrayList<>(basket.values());
         }
 
         return new ArrayList<>();
+    }
+
+    public int[] getHitagIdentifiers() {
+        int[] hitagIds = new int[basket.size()];
+
+        int index = 0;
+
+        for (String compiledIdentifier : basket.keySet()) {
+            hitagIds[index] = basket.get(compiledIdentifier).getHitagIdInt();
+            index++;
+        }
+
+        return hitagIds;
     }
 
     BuyBuddyShoppingCartManager() {
@@ -35,9 +48,7 @@ public final class BuyBuddyShoppingCartManager {
 
     public boolean addToBasket(BuyBuddyItem item){
         if (basket != null) {
-            if(HitagScanService.validateActiveHitag(item.getHitagId()))
             basket.put(item.getHitagId(),item);
-
             return true;
         }
         return false;

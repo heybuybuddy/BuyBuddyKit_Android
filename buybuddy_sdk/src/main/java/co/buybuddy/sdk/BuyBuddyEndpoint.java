@@ -10,20 +10,21 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * Created by furkan on 6/13/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/13/17.
+ * This code written by buybuddy Android Team
  */
 
 class BuyBuddyEndpoint {
 
-    static final String QrHitag          = "GET /iot/scan/<hitag_id>";
-    static final String ScanHitag        = "POST /iot/scan_record";
-    static final String Jwt              = "POST /iam/users/tokens";
-    static final String OrderDelegate    = "POST /order/delegate";
-    static final String HitagCompletion  = "PUT /order/overview/<sale_id>/hitag_completion/<compile_id>";
-    static final String OrderCompletion  = "POST /order/delegate/<sale_id>/hitag_release";
-    static final String HitagIncomplete  = "GET /order/uncompleted";
-    static final String OrderDetail      = "GET /order/overview/<sale_id>/detail";
+    static final String QrHitag              = "GET /iot/scan/<hitag_id>";
+    static final String ScanHitag            = "POST /iot/scan_record";
+    static final String Jwt                  = "POST /iam/users/tokens";
+    static final String OrderDelegate        = "POST /order/delegate";
+    static final String HitagCompletion      = "PUT /order/overview/<sale_id>/hitag_completion/<compile_id>";
+    static final String OrderCompletion      = "POST /order/delegate/<sale_id>/hitag_release";
+    static final String HitagIncomplete      = "GET /order/uncompleted";
+    static final String OrderDetail          = "GET /order/overview/<sale_id>/detail";
+    static final String HitagPasswordPayload = "POST /order/delegate/<sale_id>/hitag_release";
 
     private static final String sandBoxPrefix = "sandbox-api";
     private static final String productionPrefix = "api";
@@ -84,23 +85,18 @@ class BuyBuddyEndpoint {
 
                     JSONObject json = new JSONObject(jsonBody);
                     jsonString = json.toString();
+                    BuyBuddyUtil.printD("Endpoint", jsonString);
                 }
             }
         }catch (Exception ex) {
             ex.printStackTrace();
         }
 
-
-
         return new BuyBuddyHttpModel(getBaseUrl() + parsedEndpoint, jsonString, currentMethod);
     }
 
     public static String getBaseUrl() {
-
-        return "https://" +
-                (BuyBuddy.getInstance().api.isSandBoxMode() ?
-                        sandBoxPrefix : productionPrefix) + ".buybuddy.co";
-
+        return "http://buybuddy.tecpor.com:4000/api";
     }
 }
 

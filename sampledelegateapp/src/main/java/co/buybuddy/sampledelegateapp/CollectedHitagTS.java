@@ -1,4 +1,4 @@
-package co.buybuddy.sdk;
+package co.buybuddy.sampledelegateapp;
 
 import android.support.annotation.Nullable;
 
@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by furkan on 6/14/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/14/17.
+ * This code written by buybuddy Android Team
  */
 
 final class CollectedHitagTS extends CollectedHitag {
@@ -94,7 +94,7 @@ final class CollectedHitagTS extends CollectedHitag {
                         if (manufacturerData != null) {
                             if (manufacturerData.length() == 50) {
                                 String devicePostfix = manufacturerData.substring(2, 10);
-                                String devicePrefix = manufacturerData.substring(41, 43);
+                                String devicePrefix = "01";
                                 String reOrderedPostfix = "";
 
                                 for (int i = 8; i >= 2; i -= 2) {

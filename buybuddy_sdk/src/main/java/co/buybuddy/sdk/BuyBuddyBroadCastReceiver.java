@@ -6,6 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
+import org.greenrobot.eventbus.EventBus;
+
+import static android.bluetooth.BluetoothAdapter.STATE_OFF;
+import static android.bluetooth.BluetoothAdapter.STATE_ON;
+import static android.bluetooth.BluetoothAdapter.STATE_TURNING_OFF;
+import static android.bluetooth.BluetoothAdapter.STATE_TURNING_ON;
+
 /**
  * Created by Emir on 14/07/2017.
  */
@@ -21,8 +28,26 @@ public class BuyBuddyBroadCastReceiver extends BroadcastReceiver {
 
             final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
 
-            if(BluetoothAdapter.STATE_ON == state){
+            if(STATE_ON == state){
                 context.startService(new Intent(context, HitagScanService.class));
+            }
+
+            switch (state) {
+                case STATE_ON:
+                    EventBus.getDefault().post(BuyBuddyBluetoothState.ON);
+                    break;
+
+                case STATE_TURNING_OFF:
+                    EventBus.getDefault().post(BuyBuddyBluetoothState.OFF);
+                    break;
+
+                case STATE_TURNING_ON:
+                    EventBus.getDefault().post(BuyBuddyBluetoothState.TURNING_ON);
+                    break;
+
+                case STATE_OFF:
+                    EventBus.getDefault().post(BuyBuddyBluetoothState.TURNING_OFF);
+                    break;
             }
         }
     }

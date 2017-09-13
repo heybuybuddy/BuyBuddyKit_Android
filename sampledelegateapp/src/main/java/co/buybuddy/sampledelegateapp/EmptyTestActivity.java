@@ -1,20 +1,17 @@
 package co.buybuddy.sampledelegateapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import org.greenrobot.eventbus.EventBus;
-
-import co.buybuddy.sampledelegateapp.events.MessageEvent;
+import co.buybuddy.sdk.BuyBuddy;
+import co.buybuddy.sdk.BuyBuddyHitagReleaser_;
 
 /**
- * Created by furkan on 7/19/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 7/19/17.
+ * This code written by buybuddy Android Team
  */
 
 public class EmptyTestActivity extends AppCompatActivity {
@@ -27,7 +24,7 @@ public class EmptyTestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        txtMessage = (EditText) findViewById(R.id.txtMessage);
+        /*txtMessage = (EditText) findViewById(R.id.txtMessage);
         btnSend = (Button) findViewById(R.id.btnSend);
 
         startService(new Intent(this, SocketTest.class));
@@ -41,8 +38,25 @@ public class EmptyTestActivity extends AppCompatActivity {
                 txtMessage.setText("");
                 EventBus.getDefault().post(new MessageEvent().setMessage(message));
             }
-        });
+        });*/
 
+        BuyBuddy.sdkInitialize(this);
+        BuyBuddyHitagReleaser_.startReleasing(1, new BuyBuddyHitagReleaser_.Delegate() {
+            @Override
+            public void statusUpdate(String hitagId, BuyBuddyHitagReleaser_.Status hitagStatus) {
+
+            }
+
+            @Override
+            public void completed(String hitagID) {
+
+            }
+
+            @Override
+            public void error(BuyBuddyHitagReleaser_.HitagReleaserError error) {
+
+            }
+        });
 
 
     }

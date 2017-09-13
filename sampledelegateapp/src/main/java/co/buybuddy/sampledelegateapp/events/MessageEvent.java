@@ -1,8 +1,8 @@
 package co.buybuddy.sampledelegateapp.events;
 
 /**
- * Created by furkan on 7/20/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 7/20/17.
+ * This code written by buybuddy Android Team
  */
 
 public class MessageEvent {

@@ -13,12 +13,6 @@ import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
-import com.koushikdutta.async.ByteBufferList;
-import com.koushikdutta.async.DataEmitter;
-import com.koushikdutta.async.callback.DataCallback;
-import com.koushikdutta.async.http.AsyncHttpClient;
-import com.koushikdutta.async.http.AsyncHttpResponse;
-import com.koushikdutta.async.http.WebSocket;
 import com.polidea.rxandroidble.RxBleClient;
 import com.polidea.rxandroidble.exceptions.BleScanException;
 import com.polidea.rxandroidble.scan.ScanFilter;
@@ -26,13 +20,14 @@ import com.polidea.rxandroidble.scan.ScanResult;
 import com.polidea.rxandroidble.scan.ScanSettings;
 
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import co.buybuddy.sdk.ble.BuyBuddyBleUtils;
+import co.buybuddy.sdk.ble.CollectedHitag;
+import co.buybuddy.sdk.ble.CollectedHitagTS;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
@@ -46,8 +41,8 @@ import static com.polidea.rxandroidble.scan.ScanSettings.SCAN_MODE_BALANCED;
 
 
 /**
- * Created by furkan on 6/12/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/12/17.
+ * This code written by buybuddy Android Team
  */
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -309,35 +304,6 @@ final public class HitagScanService extends Service {
             passiveHitags.clear();
             passiveHitags = null;
         }
-    }
-
-    private void connectToVirtualBasketSocket() {
-        AsyncHttpClient.getDefaultInstance().websocket("SOCKET URL", null, new AsyncHttpClient.WebSocketConnectCallback() {
-            @Override
-            public void onCompleted(Exception ex, WebSocket webSocket) {
-
-                if (ex != null) {
-                    ex.printStackTrace();
-                    return;
-                }
-                webSocket.send("a string");
-                webSocket.send(new byte[10]);
-                webSocket.setStringCallback(new WebSocket.StringCallback() {
-                    public void onStringAvailable(String s) {
-                        System.out.println("I got a string: " + s);
-                    }
-                });
-
-                webSocket.setDataCallback(new DataCallback() {
-                    public void onDataAvailable(DataEmitter emitter, ByteBufferList byteBufferList) {
-                        System.out.println("I got some bytes!");
-                        // note that this data has been read
-                        byteBufferList.recycle();
-                    }
-                });
-
-            }
-        });
     }
 
     @Nullable

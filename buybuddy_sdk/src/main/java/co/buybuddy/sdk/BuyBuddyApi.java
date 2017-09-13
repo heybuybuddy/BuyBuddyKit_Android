@@ -1,5 +1,7 @@
 package co.buybuddy.sdk;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -10,8 +12,10 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Map;
 
+import co.buybuddy.sdk.ble.CollectedHitag;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.sdk.model.HitagPasswordPayload;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
 import co.buybuddy.sdk.responses.BuyBuddyBase;
@@ -28,8 +32,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Created by furkan on 6/13/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/13/17.
+ * This code written by buybuddy Android Team
  */
 
 public final class BuyBuddyApi {
@@ -109,6 +113,9 @@ public final class BuyBuddyApi {
                         if (responseObject != null) {
                             responseObject.setStatusCode(response.code());
                         }
+
+                        BuyBuddyUtil.printD("Api", responseStr);
+
                         if(delegate != null)
                             delegate.success(responseObject);
                     } catch (JsonSyntaxException ex) {
@@ -120,6 +127,9 @@ public final class BuyBuddyApi {
 
                     try{
                         BuyBuddyBase base = new Gson().fromJson(responseStr, BuyBuddyBase.class);
+
+                        BuyBuddyUtil.printD("Api", responseStr);
+
                         if (base != null) {
                             base.setStatusCode(response.code());
                             if(delegate != null)
@@ -156,7 +166,7 @@ public final class BuyBuddyApi {
         if (response.body() != null){
             responseStr = response.body().string();
         }else {
-            throw new BuyBuddyApiError("-0002", "Response Body Null", response.code());
+            throw new BuyBuddyApiError("-0002", "State Body Null", response.code());
         }
 
         if (response.isSuccessful()){
@@ -198,6 +208,16 @@ public final class BuyBuddyApi {
         };
     }
 
+    public void getHitagPassword(String hitagId, long saleId, int version, BuyBuddyApiCallback<HitagPasswordPayload> delegate) {
+        call(HitagPasswordPayload.class,
+             BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.HitagPasswordPayload,
+                        new ParameterMap().add("sale_id", saleId)
+                                          .add("hitag_release_params", new ParameterMap().add("hitags", new ParameterMap().add(hitagId, version)
+                                                                                                                          .getMap())
+                                                                                         .getMap())),
+             delegate);
+    }
+
     void getJwt(BuyBuddyApiCallback<BuyBuddyJwt> delegate) {
         call(BuyBuddyJwt.class,
              BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.Jwt, null),
@@ -223,7 +243,7 @@ public final class BuyBuddyApi {
                 delegate);
     }
 
-    void completeOrder(long orderId, String hitagId, int status, BuyBuddyApiCallback<BuyBuddyBase> delegate){
+    public void completeOrder(long orderId, String hitagId, int status, BuyBuddyApiCallback<BuyBuddyBase> delegate){
         call(BuyBuddyBase.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.HitagCompletion,
                         new ParameterMap().add("sale_id", orderId)

@@ -2,13 +2,21 @@ package co.buybuddy.sdk;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationManager;
 import android.support.annotation.NonNull;
 
 import com.polidea.rxandroidble.RxBleClient;
+
+import org.greenrobot.eventbus.EventBus;
+
 import co.buybuddy.sdk.util.BuyBuddyError;
+import co.buybuddy.sdk.util.CheckerLocationPermission;
+import co.buybuddy.sdk.util.CheckerLocationProvider;
+import co.buybuddy.sdk.util.LocationServicesStatus;
 
 /**
- * Created by furkan on 6/12/17.
+ * Created by Furkan Ençkü on 6/12/17.
  */
 
 public class BuyBuddy {
@@ -17,11 +25,22 @@ public class BuyBuddy {
     public final BuyBuddyApi api;
     final RxBleClient client;
     public final BuyBuddyShoppingCartManager shoppingCart;
+    private LocationServicesStatus locationServicesStatus;
 
     private BuyBuddy(){
         api = new BuyBuddyApi();
         client = RxBleClient.create(getContext());
         shoppingCart = new BuyBuddyShoppingCartManager();
+
+        locationServicesStatus = new LocationServicesStatus(
+                                        new CheckerLocationProvider(
+                                                (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE)),
+                                        new CheckerLocationPermission(getContext()), android.os.Build.VERSION.SDK_INT,
+                                                getContext().getApplicationInfo().targetSdkVersion, false);
+    }
+
+    public LocationServicesStatus getLocationServicesStatus() {
+        return locationServicesStatus;
     }
 
     public static void setContext(Context context){
@@ -46,6 +65,12 @@ public class BuyBuddy {
         if (_instance == null){
             mContext = context;
             _instance = new BuyBuddy();
+        }
+
+        try {
+            EventBus.builder().throwSubscriberException(false).installDefaultEventBus();
+        }catch (RuntimeException ex) {
+            ex.printStackTrace();
         }
 
         mContext.startService(new Intent(getContext(), HitagScanService.class));

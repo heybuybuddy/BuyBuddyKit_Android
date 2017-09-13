@@ -1,20 +1,21 @@
-package co.buybuddy.sdk;
+package co.buybuddy.sampledelegateapp;
 
 import android.util.Log;
 
 import com.polidea.rxandroidble.exceptions.BleScanException;
 
 /**
- * Created by furkan on 6/15/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/15/17.
+ * This code written by buybuddy Android Team
  */
 
 class BuyBuddyBleUtils {
-    static final String MAIN_PREFIX = "0000beef";
+    static final String MAIN_PREFIX = "0000BABA";
     static final String MAIN_POSTFIX = "-6275-7962-7564-647966656565";
 
-    static final String HITAG_TX = "00007373";
-    static final String HITAG_RX = "00007478";
+
+    static final String HITAG_TX = "00000001";
+    static final String HITAG_RX = "00000002";
 
     static long HITAG_SCAN_INTERVAL_IDLE = 1000L;
     static long HITAG_SCAN_BETWEEN_INTERVAL_IDLE = 30000L;
@@ -82,6 +83,14 @@ class BuyBuddyBleUtils {
         }
 
         return out;
+    }
+
+    public static String bytesToHex(byte[] in) {
+        final StringBuilder builder = new StringBuilder();
+        for(byte b : in) {
+            builder.append(String.format("%02x", b));
+        }
+        return builder.toString();
     }
 
     private static int hexToBin( char ch ) {

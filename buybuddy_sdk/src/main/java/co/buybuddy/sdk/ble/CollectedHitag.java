@@ -1,6 +1,8 @@
-package co.buybuddy.sdk;
+package co.buybuddy.sdk.ble;
 
-class CollectedHitag {
+import co.buybuddy.sdk.BuyBuddyUtil;
+
+public class CollectedHitag {
     private String id; // 0100000001
     private int rssi;
     private int txPower;
@@ -8,7 +10,7 @@ class CollectedHitag {
     private int battery;
 
     public String getId() {
-        return id;
+        return id.toUpperCase();
     }
 
     public CollectedHitag setId(String id) {
@@ -24,7 +26,7 @@ class CollectedHitag {
         return txPower;
     }
 
-    int getValidationCode() {
+    public int getValidationCode() {
         return validationCode;
     }
 

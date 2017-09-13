@@ -1,4 +1,4 @@
-package co.buybuddy.sdk;
+package co.buybuddy.sampledelegateapp;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -21,8 +21,9 @@ public final class BuyBuddyUtil {
     }
 
     static SharedPreferences getSP(){
-        return BuyBuddy.getInstance().getContext()
-                .getSharedPreferences(BUYBUDDY_SP_PREFIX, Context.MODE_PRIVATE);
+        //return BuyBuddy.getInstance().getContext()
+          //      .getSharedPreferences(BUYBUDDY_SP_PREFIX, Context.MODE_PRIVATE);
+        return null;
     }
 
     static final long HITAG_MANAGER_ALARM_INTERVAL = 60000;
@@ -30,7 +31,7 @@ public final class BuyBuddyUtil {
     private static boolean DEBUG = true;
 
 
-     public static void printD(String tag, String message){
+     static void printD(String tag, String message){
         if (DEBUG){
             if (tag.length() > 10){
                 tag = tag.substring(0, 10);
@@ -54,7 +55,7 @@ public final class BuyBuddyUtil {
         DEBUG = debug;
     }
 
-    public static String w(Object obj){ // Write if object is not null
+    static String w(Object obj){ // Write if object is not null
         return obj != null ? obj.toString() : "__NULL__";
     }
 }

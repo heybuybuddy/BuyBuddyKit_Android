@@ -4,6 +4,8 @@
     package="co.buybuddy.android">
 
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -14,11 +16,14 @@
         android:theme="@style/AppTheme">
 
         <service android:name="co.buybuddy.sdk.HitagScanService"
-            android:exported="true"
-            android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
-            android:enabled="true"
-            >
-        </service>
+                 android:exported="true"
+                 android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
+                 android:enabled="true"/>
+
+        <service android:name="co.buybuddy.sdk.ble.BuyBuddyHitagReleaser"
+                 android:exported="true"
+                 android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE"
+                 android:enabled="true"/>
 
         <receiver android:name="co.buybuddy.sdk.BuyBuddyBroadCastReceiver">
             <intent-filter>

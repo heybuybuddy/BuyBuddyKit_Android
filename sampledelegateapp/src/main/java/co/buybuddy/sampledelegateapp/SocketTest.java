@@ -23,8 +23,8 @@ import java.util.Map;
 import co.buybuddy.sampledelegateapp.events.MessageEvent;
 
 /**
- * Created by furkan on 7/19/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 7/19/17.
+ * This code written by buybuddy Android Team
  */
 
 interface UIInterface{

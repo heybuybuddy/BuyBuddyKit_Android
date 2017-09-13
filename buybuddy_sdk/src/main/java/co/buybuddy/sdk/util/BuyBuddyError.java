@@ -1,8 +1,8 @@
 package co.buybuddy.sdk.util;
 
 /**
- * Created by furkan on 6/22/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/22/17.
+ * This code written by buybuddy Android Team
  */
 
 public class BuyBuddyError extends Exception {
