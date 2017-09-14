@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -84,7 +86,7 @@ class BuyBuddyEndpoint {
                         }
                     }
 
-                    JSONObject json = new JSONObject(jsonBody);
+                    JSONObject json = new JSONObject(new Gson().toJson(jsonBody));
                     jsonString = json.toString();
 
                     BuyBuddyUtil.printD("Endpoint", jsonString);

@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
  * This code written by buybuddy Android Team
  */
 
-public class BleScanException extends BleException {
+public class HitagReleaserBleException extends HitagReleaserException {
 
     @IntDef({BLUETOOTH_CANNOT_START, BLUETOOTH_DISABLED, BLUETOOTH_NOT_AVAILABLE, LOCATION_PERMISSION_MISSING, LOCATION_SERVICES_DISABLED,
             SCAN_FAILED_ALREADY_STARTED, SCAN_FAILED_APPLICATION_REGISTRATION_FAILED, SCAN_FAILED_INTERNAL_ERROR,
@@ -86,11 +86,11 @@ public class BleScanException extends BleException {
     @Reason
     private final int reason;
 
-    public BleScanException(@Reason int reason) {
+    public HitagReleaserBleException(@Reason int reason) {
         this.reason = reason;
     }
 
-    public BleScanException(@Reason int reason, Throwable causeException) {
+    public HitagReleaserBleException(@Reason int reason, Throwable causeException) {
         super(causeException);
         this.reason = reason;
     }
@@ -107,7 +107,7 @@ public class BleScanException extends BleException {
 
     @Override
     public String toString() {
-        return "BleScanException{"
+        return "HitagReleaserBleException{"
                 + "reason=" + reasonDescription()
                 + toStringCauseIfExists()
                 + '}';

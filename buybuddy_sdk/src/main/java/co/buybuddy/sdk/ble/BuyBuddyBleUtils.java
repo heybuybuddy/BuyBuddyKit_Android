@@ -3,7 +3,7 @@ package co.buybuddy.sdk.ble;
 import android.os.Build;
 import android.util.Log;
 
-import co.buybuddy.sdk.ble.exception.BleScanException;
+import co.buybuddy.sdk.ble.exception.HitagReleaserBleException;
 
 public class BuyBuddyBleUtils {
 
@@ -22,38 +22,38 @@ public class BuyBuddyBleUtils {
     public final static int HITAG_TYPE_CUSTOM = 6;
     public final static int HITAG_TYPE_BEACON = 3;
 
-    public static void handBleScanExeption(BleScanException bleScanException) {
+    public static void handBleScanExeption(HitagReleaserBleException bleScanException) {
 
         switch (bleScanException.getReason()) {
-            case BleScanException.BLUETOOTH_NOT_AVAILABLE:
+            case HitagReleaserBleException.BLUETOOTH_NOT_AVAILABLE:
                 Log.d("ERROR", "Bluetooth is not available");
                 break;
-            case BleScanException.BLUETOOTH_DISABLED:
+            case HitagReleaserBleException.BLUETOOTH_DISABLED:
                 Log.d("ERROR", "Enable bluetooth and try again");
                 break;
-            case BleScanException.LOCATION_PERMISSION_MISSING:
+            case HitagReleaserBleException.LOCATION_PERMISSION_MISSING:
                 Log.d("ERROR", "On Android 6.0 and above location permission is required");
                 break;
-            case BleScanException.LOCATION_SERVICES_DISABLED:
+            case HitagReleaserBleException.LOCATION_SERVICES_DISABLED:
                 Log.d("ERROR", "Location services needs to be enabled on Android 6.0 and above");
                 break;
-            case BleScanException.SCAN_FAILED_ALREADY_STARTED:
+            case HitagReleaserBleException.SCAN_FAILED_ALREADY_STARTED:
                 Log.d("ERROR", "Scan with the same filters is already started");
                 break;
-            case BleScanException.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
+            case HitagReleaserBleException.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
                 Log.d("ERROR", "Failed to register application for bluetooth scan");
                 break;
-            case BleScanException.SCAN_FAILED_FEATURE_UNSUPPORTED:
+            case HitagReleaserBleException.SCAN_FAILED_FEATURE_UNSUPPORTED:
                 Log.d("ERROR", "Scan with specified parameters is not supported");
                 break;
-            case BleScanException.SCAN_FAILED_INTERNAL_ERROR:
+            case HitagReleaserBleException.SCAN_FAILED_INTERNAL_ERROR:
                 Log.d("ERROR", "Scan failed due to internal error");
                 break;
-            case BleScanException.SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES:
+            case HitagReleaserBleException.SCAN_FAILED_OUT_OF_HARDWARE_RESOURCES:
                 Log.d("ERROR", "Scan cannot start due to limited hardware resources");
                 break;
-            case BleScanException.UNKNOWN_ERROR_CODE:
-            case BleScanException.BLUETOOTH_CANNOT_START:
+            case HitagReleaserBleException.UNKNOWN_ERROR_CODE:
+            case HitagReleaserBleException.BLUETOOTH_CANNOT_START:
             default:
                 Log.d("ERROR", "Unable to start scanning");
                 break;

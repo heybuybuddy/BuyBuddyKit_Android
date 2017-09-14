@@ -20,6 +20,12 @@ public final class CollectedHitagTS extends CollectedHitag {
         return lastSeen;
     }
 
+    private boolean isBeacon = false;
+
+    public boolean isBeacon() {
+        return isBeacon;
+    }
+
     private BluetoothDevice device;
 
     public void setLastSeen(long lastSeen) {
@@ -33,6 +39,9 @@ public final class CollectedHitagTS extends CollectedHitag {
         return new CollectedHitag(this.getRssi())
                 .setBattery(getBattery())
                 .setId(getId())
+                .setVibration(isVibrating())
+                .setRssi(getRssi())
+                .setPinState(getPinState())
                 .setTxPower(getTxPower());
     }
 
@@ -63,8 +72,8 @@ public final class CollectedHitagTS extends CollectedHitag {
     }
 
     @Override
-    public CollectedHitagTS setVibration(boolean isVibrating) {
-         super.setVibration(isVibrating);
+    public CollectedHitagTS setVibration(boolean didVibrate) {
+        super.setVibration(didVibrate);
         return this;
     }
 
@@ -82,7 +91,6 @@ public final class CollectedHitagTS extends CollectedHitag {
 
         String manufacturerData, deviceID;
         CollectedHitagTS hitag;
-
 
         Map<Integer, String> recordMap = parseRecord(scanRecord);
         if (recordMap != null)
@@ -113,6 +121,8 @@ public final class CollectedHitagTS extends CollectedHitag {
                                             .setDevice(device)
                                             .setId(deviceID);
 
+                            hitag.isBeacon = true;
+
                             return hitag;
                         }
 
@@ -141,14 +151,19 @@ public final class CollectedHitagTS extends CollectedHitag {
                                 }
 
                                 try {
-                                    pinStatus = Integer.parseInt(manufacturerData.substring(0,2));
-                                    battery = Integer.parseInt(manufacturerData.substring(6, 8));
+                                    pinStatus = Integer.parseInt(manufacturerData.substring(0,2), 16);
+                                    battery = Integer.parseInt(manufacturerData.substring(6, 8), 16);
                                 } catch(NumberFormatException ex ){
                                     ex.printStackTrace();
                                 }
 
-                                isFastAdvertising = manufacturerData.substring(2,4).equals("EE");
+                                String vibrationString = manufacturerData.substring(2,4);
 
+                                if (vibrationString.equals("EE") || vibrationString.equals("ee")) {
+                                    isFastAdvertising = true;
+                                } else {
+                                    isFastAdvertising = false;
+                                }
 
                                 deviceID = devicePrefix + reOrderedPostfix;
                                 deviceID = deviceID.toUpperCase();
@@ -164,9 +179,10 @@ public final class CollectedHitagTS extends CollectedHitag {
                                             .setPinState(pinStatus)
                                             .setBattery(battery);
 
+                            hitag.isBeacon = false;
+
                             return hitag;
                         }
-
 
                         break;
                 }
@@ -181,7 +197,7 @@ public final class CollectedHitagTS extends CollectedHitag {
         return this;
     }
 
-    static public Map<Integer,String> parseRecord(byte[] scanRecord){
+    static private Map<Integer,String> parseRecord(byte[] scanRecord){
         Map <Integer,String> ret = new HashMap<>();
         int index = 0;
         while (index < scanRecord.length) {

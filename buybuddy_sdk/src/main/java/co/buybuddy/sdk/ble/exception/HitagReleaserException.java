@@ -5,17 +5,17 @@ package co.buybuddy.sdk.ble.exception;
  * This code written by buybuddy Android Team
  */
 
-public class BleException extends RuntimeException {
+public class HitagReleaserException extends RuntimeException {
 
-    public BleException() {
+    public HitagReleaserException() {
         super();
     }
 
-    public BleException(String message) {
+    public HitagReleaserException(String message) {
         super(message);
     }
 
-    public BleException(Throwable throwable) {
+    public HitagReleaserException(Throwable throwable) {
         super(throwable);
     }
 

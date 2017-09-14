@@ -36,7 +36,9 @@ class BuyBuddyTokenManager {
     }
 
     String getJwt(){
-        return jwt;
+        synchronized (jwt) {
+            return jwt;
+        }
     }
 
     private static void setJwtToDisk(String jwt){

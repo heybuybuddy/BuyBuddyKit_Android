@@ -1,5 +1,7 @@
 package co.buybuddy.sdk;
 
+import android.util.Log;
+
 import java.io.IOException;
 
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
@@ -66,6 +68,9 @@ class BuyBuddyAuthorization implements Interceptor{
                         return response; //if token refresh failed - show error to user
                     }else {
 
+                        setAuthHeader(builder);
+                        request = builder.build();
+
                         response = chain.proceed(request);
 
                         return response;
@@ -79,7 +84,9 @@ class BuyBuddyAuthorization implements Interceptor{
 
     private void setAuthHeader(Request.Builder builder) {
         if (tokenManager.getJwt() != null) //Add Auth token to each request if authorized
+        {
             builder.header("Authorization", String.format("Bearer %s", tokenManager.getJwt()));
+        }
     }
 
     private int refreshJwt() {

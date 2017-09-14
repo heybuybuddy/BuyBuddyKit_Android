@@ -7,7 +7,7 @@ public class CollectedHitag {
     private int rssi;
     private int txPower;
     private int battery;
-    private boolean isVibrating = false;
+    private boolean didVibrate = false;
     private int pinState = 5;
 
     public String getId() {
@@ -19,7 +19,7 @@ public class CollectedHitag {
         return this;
     }
 
-    int getRssi() {
+    public int getRssi() {
         return rssi;
     }
 
@@ -40,7 +40,7 @@ public class CollectedHitag {
     }
 
     public boolean isVibrating() {
-        return isVibrating;
+        return didVibrate;
     }
 
     public CollectedHitag setBattery(int battery) {
@@ -58,8 +58,8 @@ public class CollectedHitag {
         return this;
     }
 
-    public CollectedHitag setVibration(boolean isVibrating) {
-        this.isVibrating = isVibrating;
+    public CollectedHitag setVibration(boolean didVibrate) {
+        this.didVibrate = didVibrate;
         return this;
     }
 

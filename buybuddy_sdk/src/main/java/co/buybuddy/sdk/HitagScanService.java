@@ -17,11 +17,9 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.widget.Toast;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +29,7 @@ import java.util.Map;
 import co.buybuddy.sdk.ble.BuyBuddyBleUtils;
 import co.buybuddy.sdk.ble.CollectedHitag;
 import co.buybuddy.sdk.ble.CollectedHitagTS;
-import co.buybuddy.sdk.ble.exception.BleScanException;
+import co.buybuddy.sdk.ble.exception.HitagReleaserBleException;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
@@ -82,13 +80,13 @@ final public class HitagScanService extends Service {
         passiveHitags = new HashMap<>();
         collectedHitags = new ArrayList<>();
 
-        startReporter();
-        startAlarmManager();
-
-
         if (isScannable(mBluetoothAdapter)){
             startScanning();
+
+            startReporter();
+            startAlarmManager();
         }
+
     }
 
     private boolean isScannable(BluetoothAdapter adapter) {
@@ -98,19 +96,19 @@ final public class HitagScanService extends Service {
 
         try {
             if (adapter == null) {
-                throw new BleScanException(BleScanException.BLUETOOTH_NOT_AVAILABLE);
+                throw new HitagReleaserBleException(HitagReleaserBleException.BLUETOOTH_NOT_AVAILABLE);
             } else if (!adapter.isEnabled()) {
-                throw new BleScanException(BleScanException.BLUETOOTH_DISABLED);
+                throw new HitagReleaserBleException(HitagReleaserBleException.BLUETOOTH_DISABLED);
             } else if (!BuyBuddy.getInstance().getLocationServicesStatus().isLocationPermissionOk()) {
-                throw new BleScanException(BleScanException.LOCATION_PERMISSION_MISSING);
+                throw new HitagReleaserBleException(HitagReleaserBleException.LOCATION_PERMISSION_MISSING);
             } else if (!BuyBuddy.getInstance().getLocationServicesStatus().isLocationProviderOk()) {
-                throw new BleScanException(BleScanException.LOCATION_SERVICES_DISABLED);
+                throw new HitagReleaserBleException(HitagReleaserBleException.LOCATION_SERVICES_DISABLED);
             } else if (!hasBLE) {
-                throw new BleScanException(BleScanException.BLUETOOTH_LE_NOT_AVAILABLE);
+                throw new HitagReleaserBleException(HitagReleaserBleException.BLUETOOTH_LE_NOT_AVAILABLE);
             }
 
             return true;
-        } catch (BleScanException ex) {
+        } catch (HitagReleaserBleException ex) {
 
             return false;
         }
@@ -155,6 +153,23 @@ final public class HitagScanService extends Service {
                         if (hitag != null) {
                             lastHitagTimeStamp = System.currentTimeMillis();
                             hitag.setLastSeen(lastHitagTimeStamp);
+
+                            if (activeHitags.containsKey(hitag.getId())) {
+                                CollectedHitagTS currentHitag = activeHitags.get(hitag.getId());
+
+                                if (hitag.isBeacon()) {
+                                    currentHitag.setRssi(hitag.getRssi());
+                                    currentHitag.setLastSeen(hitag.getLastSeen());
+
+                                    //activeHitags.put(hitag.getId(), currentHitag);
+                                } else {
+                                    activeHitags.put(hitag.getId(), hitag);
+                                }
+                            } else {
+                                if (!hitag.isBeacon())
+                                    activeHitags.put(hitag.getId(), hitag);
+                            }
+
                             activeHitags.put(hitag.getId(), hitag);
 
                             if (!hitagStateActive) {
@@ -188,10 +203,25 @@ final public class HitagScanService extends Service {
                                 result.getRssi());
 
                         if (hitag != null) {
-                            //BuyBuddyUtil.printD(TAG, "Hitag: " + hitag.getId());
+
                             lastHitagTimeStamp = System.currentTimeMillis();
                             hitag.setLastSeen(lastHitagTimeStamp);
-                            activeHitags.put(hitag.getId(), hitag);
+
+                            if (activeHitags.containsKey(hitag.getId())) {
+                                CollectedHitagTS currentHitag = activeHitags.get(hitag.getId());
+
+                                if (hitag.isBeacon()) {
+                                    currentHitag.setRssi(hitag.getRssi());
+                                    currentHitag.setLastSeen(hitag.getLastSeen());
+
+                                    //activeHitags.put(currentHitag.getId(), hitag);
+                                } else {
+                                    activeHitags.put(hitag.getId(), hitag);
+                                }
+                            } else {
+                                if (!hitag.isBeacon())
+                                    activeHitags.put(hitag.getId(), hitag);
+                            }
 
                             if (!hitagStateActive) {
                                 hitagStateActive = true;
@@ -277,7 +307,8 @@ final public class HitagScanService extends Service {
                 BuyBuddy.getInstance().api.postScanRecord(collectedHitags, new BuyBuddyApiCallback<BuyBuddyBase>() {
                     @Override
                     public void success(BuyBuddyApiObject<BuyBuddyBase> response) {
-                          }
+
+                    }
 
                     @Override
                     public void error(BuyBuddyApiError error) {

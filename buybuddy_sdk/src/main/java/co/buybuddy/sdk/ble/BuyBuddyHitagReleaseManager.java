@@ -7,7 +7,8 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import co.buybuddy.sdk.BuyBuddy;
-import co.buybuddy.sdk.ble.exception.BleScanException;
+import co.buybuddy.sdk.ble.exception.HitagReleaserBleException;
+import co.buybuddy.sdk.ble.exception.HitagReleaserException;
 
 /**
  * Created by Furkan Ençkü on 9/12/17.
@@ -18,13 +19,14 @@ interface IBuyBuddyHitagReleaser {
     void onHitagFailed(String hitagId, HitagState event);
     void onHitagEvent(String hitagId, HitagState event);
     void onHitagReleased(String hitagId);
-    void onExceptionThrown(BleScanException exception);
+    void onExceptionThrown(HitagReleaserException exception);
     void didFinish();
 }
 
 public final class BuyBuddyHitagReleaseManager {
 
     private BuyBuddyHitagReleaserDelegate delegate;
+    private Intent serviceIntent;
 
     public BuyBuddyHitagReleaseManager() {
         EventBus.getDefault().register(this);
@@ -32,10 +34,20 @@ public final class BuyBuddyHitagReleaseManager {
 
     public BuyBuddyHitagReleaseManager startReleasing(long orderId) {
 
-        Intent extras = new Intent(BuyBuddy.getContext(), BuyBuddyHitagReleaser.class);
-        extras.putExtra("orderId", orderId);
+        serviceIntent = new Intent(BuyBuddy.getContext(), BuyBuddyHitagReleaser.class);
+        serviceIntent.putExtra("orderId", orderId);
 
-        BuyBuddy.getContext().startService(extras);
+        BuyBuddy.getContext().startService(serviceIntent);
+
+        return this;
+    }
+
+    public BuyBuddyHitagReleaseManager retryReleasing() {
+
+        serviceIntent = new Intent(BuyBuddy.getContext(), BuyBuddyHitagReleaser.class);
+        serviceIntent.putExtra("is_retry", true);
+
+        BuyBuddy.getContext().startService(serviceIntent);
 
         return this;
     }
@@ -66,6 +78,7 @@ public final class BuyBuddyHitagReleaseManager {
 
                 case 2:
                     delegate.didFinish();
+                    BuyBuddy.getContext().stopService(serviceIntent);
                     break;
 
                 case 3:
@@ -75,7 +88,7 @@ public final class BuyBuddyHitagReleaseManager {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    void onBleScanException(BleScanException exception) {
+    void onBleScanException(HitagReleaserException exception) {
         if (delegate != null)
             delegate.onExceptionThrown(exception);
     }

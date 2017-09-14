@@ -1,16 +1,16 @@
 package co.buybuddy.sdk.ble;
 
-import co.buybuddy.sdk.ble.exception.BleScanException;
+import co.buybuddy.sdk.ble.exception.HitagReleaserException;
 
 public abstract class BuyBuddyHitagReleaserDelegate implements IBuyBuddyHitagReleaser {
 
     /**
      *
-     * @param exception look at the {@link BleScanException}
+     * @param exception look at the {@link HitagReleaserException}
      */
 
     @Override
-    public void onExceptionThrown(BleScanException exception) {
+    public void onExceptionThrown(HitagReleaserException exception) {
 
     }
 

@@ -19,6 +19,7 @@ import co.buybuddy.sdk.model.HitagPasswordPayload;
 
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
 import static android.bluetooth.BluetoothProfile.STATE_CONNECTED;
+import static android.bluetooth.BluetoothProfile.STATE_DISCONNECTED;
 import static co.buybuddy.sdk.ble.Hitag.Characteristic.PASSWORD;
 
 /**
@@ -62,7 +63,7 @@ class Hitag {
         hitagGatt = device.connectGatt(ctx, false, mCallBack);
         htgCharacters = new HashMap<>();
 
-        //connectionTimeoutHandler.postDelayed(timeOutRunnable, 10000);
+        connectionTimeoutHandler.postDelayed(timeOutRunnable, 10000);
         startedAt = System.currentTimeMillis();
     }
 
@@ -75,6 +76,7 @@ class Hitag {
             BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitagId + " Connection Timeout");
 
             hitagGatt.disconnect();
+            hitagGatt.close();
         }
     };
 
@@ -107,18 +109,9 @@ class Hitag {
             if (hitagDelegate != null)
                 hitagDelegate.onDeviceStuck(hitagId, currentState);
 
-            hitagGatt.disconnect();
+            disconnect();
         }
     };
-
-    public void connect(){
-        hitagGatt.connect();
-        connectionTimeoutHandler.removeCallbacks(timeOutRunnable);
-        notifyTimeoutHandler.removeCallbacks(notifyRunnable);
-
-        connectionTimeoutHandler.postDelayed(timeOutRunnable, 10000);
-        startedAt = System.currentTimeMillis();
-    }
 
     public Hitag setHitagId(String hitagId) {
         this.hitagId = hitagId;
@@ -131,6 +124,13 @@ class Hitag {
 
     public void disconnect() {
         hitagGatt.disconnect();
+    }
+
+    public void forceDisconnect() {
+        if (hitagGatt != null) {
+            hitagGatt.disconnect();
+            hitagGatt.close();
+        }
     }
 
     public boolean releaseHitag(HitagPasswordPayload password) {
@@ -171,6 +171,8 @@ class Hitag {
                 connectionTimeoutHandler.removeCallbacks(timeOutRunnable);
                 notifyTimeoutHandler.postDelayed(notifyRunnable, 10000);
                 hitagGatt.discoverServices();
+            } else if (newState == STATE_DISCONNECTED){
+                hitagGatt.close();
             }
         }
 

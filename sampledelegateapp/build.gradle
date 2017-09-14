@@ -37,14 +37,11 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:appcompat-v7:26.0.1'
-    compile 'com.polidea.rxandroidble:rxandroidble:1.3.2'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha9'
-    compile 'org.greenrobot:eventbus:3.0.0'
-    compile('com.github.eoinsha:JavaPhoenixChannels:0.2') {
-        exclude module: 'groovy-all'
-    }
     testCompile 'junit:junit:4.12'
-    //compile project(':buybuddy_sdk')
     compile 'com.android.support:recyclerview-v7:26.0.1'
-    compile project(':buybuddy_sdk')
+
+
+    compile 'co.buybuddy.sdk:buybuddykit:1.0.0'
+    //compile project(':buybuddy_sdk')
 }

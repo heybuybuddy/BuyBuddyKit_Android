@@ -31,7 +31,7 @@ public final class BuyBuddyUtil {
 
 
      public static void printD(String tag, String message){
-        if (DEBUG){
+        if (DEBUG && message != null && tag != null){
             if (tag.length() > 10){
                 tag = tag.substring(0, 10);
             }

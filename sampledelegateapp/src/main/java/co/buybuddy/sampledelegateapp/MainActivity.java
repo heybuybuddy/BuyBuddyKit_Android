@@ -14,7 +14,8 @@ import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaserDelegate;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaseManager;
 import co.buybuddy.sdk.ble.HitagState;
-import co.buybuddy.sdk.ble.exception.BleScanException;
+import co.buybuddy.sdk.ble.exception.HitagReleaserBleException;
+import co.buybuddy.sdk.ble.exception.HitagReleaserException;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
@@ -40,8 +41,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        manager = new BuyBuddyHitagReleaseManager();
-
         btnReset = findViewById(R.id.btnReset);
         btnCreateOrder = findViewById(R.id.btnCreateOrder);
         btnRelease = findViewById(R.id.btnPay);
@@ -53,8 +52,9 @@ public class MainActivity extends AppCompatActivity {
         hitagIds.add("FRKN00395");
         hitagIds.add("ERSL01623");
         hitagIds.add("SVDA00907");
+        hitagIds.add("SVDA00836");
 
-        BuyBuddy.sdkInitialize(this);
+        manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
                 .setUserToken("9Bxs2WY8Sq6y4wYu5SIjUbM6kZl/iENIrfqAaBxAtcGNddDZcU1ANI9g7wUVM4rEDkup8J5gQzuWfGE9uPGhYe==");
 
@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                 new BuyBuddyUserTokenExpiredDelegate() {
             @Override
             public void tokenExpired() {
-
+                Log.d("*x*", "TOKENEXPIRED");
             }
         });
 
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                manager.startReleasing(orderId).subscribeForHitagEvents(new BuyBuddyHitagReleaserDelegate() {
+                manager.retryReleasing().subscribeForHitagEvents(new BuyBuddyHitagReleaserDelegate() {
 
                     @Override
                     public void onHitagEvent(String hitagId, HitagState event) {
@@ -137,11 +137,11 @@ public class MainActivity extends AppCompatActivity {
                     public void onHitagFailed(String hitagId, HitagState event) {
                         super.onHitagFailed(hitagId, event);
 
-                        Log.d("*x* Failed", "id" + hitagId + " reason :" + event);
+                        Log.d("*x* Failed", hitagId + " reason :" + event);
                     }
 
                     @Override
-                    public void onExceptionThrown(BleScanException exception) {
+                    public void onExceptionThrown(HitagReleaserException exception) {
                         super.onExceptionThrown(exception);
 
                         Log.d("*x* EXCEPTION", "ex" + exception.toString());

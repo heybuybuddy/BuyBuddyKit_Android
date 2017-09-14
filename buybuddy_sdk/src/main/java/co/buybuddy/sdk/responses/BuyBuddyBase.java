@@ -19,6 +19,11 @@ public class BuyBuddyBase {
         return this;
     }
 
+    public BuyBuddyBase setErrors(BuyBuddyApiError errors) {
+        this.errors = errors;
+        return this;
+    }
+
     public BuyBuddyApiError getErrors() {
         return errors.setResponsecode(statusCode);
     }
