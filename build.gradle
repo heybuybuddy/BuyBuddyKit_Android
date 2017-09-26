@@ -17,14 +17,14 @@ allprojects {
     repositories {
         jcenter()
         maven {
+            url "https://maven.google.com"
+        }
+        maven {
             url "http://repos.buybuddy.co/artifactory/libs-release-local"
             credentials {
                 username = "softtech"
                 password = "AP8kCrR5rLuVts7yjMENcxt6YxJ"
             }
-        }
-        maven {
-            url "https://maven.google.com"
         }
     }
 }
