@@ -112,7 +112,7 @@ final public class HitagScanService extends Service {
 
             return true;
         } catch (HitagReleaserBleException ex) {
-
+            ex.printStackTrace();
             return false;
         }
     }
