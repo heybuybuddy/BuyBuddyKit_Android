@@ -49,10 +49,10 @@ public class MainActivity extends AppCompatActivity {
         btnRelease.setAlpha(0);
 
         hitagIds = new ArraySet<>();
-        hitagIds.add("FRKN00395");
+        //hitagIds.add("FRKN00395");
         hitagIds.add("ERSL01623");
-        hitagIds.add("SVDA00907");
-        hitagIds.add("SVDA00836");
+        //hitagIds.add("SVDA00907");
+        //hitagIds.add("SVDA00836");
 
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
                     BuyBuddy.getInstance().shoppingCart.addToBasket(first);
                 }
 
-                if (BuyBuddy.getInstance().shoppingCart.getItems().size() == 3) {
+                if (BuyBuddy.getInstance().shoppingCart.getItems().size() == 1) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

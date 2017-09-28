@@ -5,6 +5,8 @@ package co.buybuddy.sdk.model;
  * This code written by buybuddy Android Team
  */
 
+//TODO Serializable !!
+
 public final class BuyBuddyItem {
     private String hitag_id;
     private String name;

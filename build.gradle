@@ -23,7 +23,7 @@ allprojects {
             url "http://repos.buybuddy.co/artifactory/libs-release-local"
             credentials {
                 username = "softtech"
-                password = "AP8kCrR5rLuVts7yjMENcxt6YxJ"
+                password = "5fef63b7311cc55b7554511fe6ff4d6b"
             }
         }
     }

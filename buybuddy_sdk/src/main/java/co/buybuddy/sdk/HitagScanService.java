@@ -18,7 +18,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -62,6 +61,16 @@ final public class HitagScanService extends Service {
     static Map<String, CollectedHitagTS> passiveHitags;
     static ArrayList<CollectedHitag> collectedHitags;
 
+    private void initStartBluetoothScan() {
+
+        if (isScannable(mBluetoothAdapter)){
+            startScanning();
+
+            startReporter();
+            startAlarmManager();
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -80,13 +89,7 @@ final public class HitagScanService extends Service {
         passiveHitags = new HashMap<>();
         collectedHitags = new ArrayList<>();
 
-        if (isScannable(mBluetoothAdapter)){
-            startScanning();
-
-            startReporter();
-            startAlarmManager();
-        }
-
+        initStartBluetoothScan();
     }
 
     private boolean isScannable(BluetoothAdapter adapter) {
@@ -117,6 +120,8 @@ final public class HitagScanService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+
+        initStartBluetoothScan();
 
         return START_STICKY;
     }
