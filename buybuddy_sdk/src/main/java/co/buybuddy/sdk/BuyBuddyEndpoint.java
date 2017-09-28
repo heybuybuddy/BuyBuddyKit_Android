@@ -100,7 +100,8 @@ class BuyBuddyEndpoint {
     }
 
     public static String getBaseUrl() {
-        return "http://buybuddy.tecpor.com:4000/api";
+        return "https://" + (BuyBuddy.getInstance().api.isSandBoxMode() ?
+                sandBoxPrefix : productionPrefix) + ".buybuddy.co";
     }
 }
 
