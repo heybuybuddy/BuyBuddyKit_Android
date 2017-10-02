@@ -20,9 +20,14 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import com.forkingcode.bluetoothcompat.BluetoothLeScannerCompat;
+import com.forkingcode.bluetoothcompat.ScanCallbackCompat;
+import com.forkingcode.bluetoothcompat.ScanResultCompat;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import co.buybuddy.sdk.ble.BuyBuddyBleUtils;
@@ -41,21 +46,19 @@ import co.buybuddy.sdk.responses.BuyBuddyBase;
  */
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-final public class HitagScanService extends Service {
+final public class HitagScanService extends Service  {
 
-    private Handler mBetweenHandler, mHitagReportHandler, mHandler;
+    private static Handler mBetweenHandler, mHitagReportHandler, mHandler;
     private AlarmManager hitagAlarm;
-    private Context context;
     private BluetoothAdapter mBluetoothAdapter;
-    private ScanCallback mLeScanCallback;
-    private Toast toaster;
     private int reportCount = 0;
+    private BluetoothLeScannerCompat mBleScanner;
+    private ScanCallbackCompat scanCallback;
 
     private final static String TAG = "HitagScanService";
 
     private long lastHitagTimeStamp;
     private boolean hitagStateActive = true;
-    private boolean mScanning = false;
 
     static Map<String, CollectedHitagTS> activeHitags;
     static Map<String, CollectedHitagTS> passiveHitags;
@@ -63,12 +66,9 @@ final public class HitagScanService extends Service {
 
     private void initStartBluetoothScan() {
 
-        if (isScannable(mBluetoothAdapter)){
-            startScanning();
-
-            startReporter();
-            startAlarmManager();
-        }
+        startScanning();
+        doReport();
+        startAlarmManager();
     }
 
     @Override
@@ -83,38 +83,59 @@ final public class HitagScanService extends Service {
         mHandler = new Handler();
         mBetweenHandler = new Handler();
         mHitagReportHandler = new Handler();
-        context = getApplicationContext();
 
         activeHitags = new HashMap<>();
         passiveHitags = new HashMap<>();
         collectedHitags = new ArrayList<>();
 
-        initStartBluetoothScan();
-    }
+        mBleScanner = new BluetoothLeScannerCompat(this);
 
-    private boolean isScannable(BluetoothAdapter adapter) {
+        scanCallback = new ScanCallbackCompat() {
+            @Override
+            public void onScanResult(int callbackType, ScanResultCompat result) {
+                super.onScanResult(callbackType, result);
 
-        PackageManager pm = getPackageManager();
-        boolean hasBLE = pm.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+                if (result.getScanRecord() != null) {
 
-        try {
-            if (adapter == null) {
-                throw new HitagReleaserBleException(HitagReleaserBleException.BLUETOOTH_NOT_AVAILABLE);
-            } else if (!adapter.isEnabled()) {
-                throw new HitagReleaserBleException(HitagReleaserBleException.BLUETOOTH_DISABLED);
-            } else if (!BuyBuddy.getInstance().getLocationServicesStatus().isLocationPermissionOk()) {
-                throw new HitagReleaserBleException(HitagReleaserBleException.LOCATION_PERMISSION_MISSING);
-            } else if (!BuyBuddy.getInstance().getLocationServicesStatus().isLocationProviderOk()) {
-                throw new HitagReleaserBleException(HitagReleaserBleException.LOCATION_SERVICES_DISABLED);
-            } else if (!hasBLE) {
-                throw new HitagReleaserBleException(HitagReleaserBleException.BLUETOOTH_LE_NOT_AVAILABLE);
+                    CollectedHitagTS hitag = CollectedHitagTS.getHitag(result.getDevice(),
+                                                                       result.getScanRecord().getBytes(),
+                                                                       result.getRssi());
+
+                    if (hitag != null) {
+
+                        lastHitagTimeStamp = System.currentTimeMillis();
+                        hitag.setLastSeen(lastHitagTimeStamp);
+
+                        if (activeHitags.containsKey(hitag.getId())) {
+                            CollectedHitagTS currentHitag = activeHitags.get(hitag.getId());
+
+                            if (hitag.isBeacon()) {
+                                currentHitag.setRssi(hitag.getRssi());
+                                currentHitag.setLastSeen(hitag.getLastSeen());
+                                activeHitags.put(hitag.getId(), currentHitag);
+                            } else {
+                                activeHitags.put(hitag.getId(), hitag);
+                            }
+
+                        } else if (!hitag.isBeacon()){
+                            activeHitags.put(hitag.getId(), hitag);
+                        }
+
+                        if (!hitagStateActive) {
+                            hitagStateActive = true;
+                            stopScanHandler();
+                        }
+                    }
+                }
             }
 
-            return true;
-        } catch (HitagReleaserBleException ex) {
-            ex.printStackTrace();
-            return false;
-        }
+            @Override
+            public void onScanFailed(int errorCode) {
+                super.onScanFailed(errorCode);
+            }
+        };
+
+        initStartBluetoothScan();
     }
 
     @Override
@@ -127,137 +148,12 @@ final public class HitagScanService extends Service {
     }
 
     private void startScanning() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            scanLeDevice21(true);
-        } else {
-            scanLeDevice18(true);
-        }
+        mBleScanner.stopScan(mBluetoothAdapter, scanCallback);
+        mBleScanner.startScan(mBluetoothAdapter, scanCallback);
     }
 
     private void stopScanning() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            scanLeDevice21(false);
-        } else {
-            scanLeDevice18(false);
-        }
-    }
-
-    private void scanLeDevice18(boolean enable) {
-
-        final BluetoothAdapter.LeScanCallback mLeScanCallback =
-                new BluetoothAdapter.LeScanCallback() {
-                    @Override
-                    public void onLeScan(final BluetoothDevice bluetoothDevice, int rssi, byte[] scanRecord) {
-
-                        CollectedHitagTS hitag = CollectedHitagTS.getHitag(bluetoothDevice,
-                                scanRecord,
-                                rssi);
-
-                        if (hitag != null) {
-                            lastHitagTimeStamp = System.currentTimeMillis();
-                            hitag.setLastSeen(lastHitagTimeStamp);
-
-                            if (activeHitags.containsKey(hitag.getId())) {
-                                CollectedHitagTS currentHitag = activeHitags.get(hitag.getId());
-
-                                if (hitag.isBeacon()) {
-                                    currentHitag.setRssi(hitag.getRssi());
-                                    currentHitag.setLastSeen(hitag.getLastSeen());
-
-                                    //activeHitags.put(hitag.getId(), currentHitag);
-                                } else {
-                                    activeHitags.put(hitag.getId(), hitag);
-                                }
-                            } else {
-                                if (!hitag.isBeacon())
-                                    activeHitags.put(hitag.getId(), hitag);
-                            }
-
-                            activeHitags.put(hitag.getId(), hitag);
-
-                            if (!hitagStateActive) {
-                                hitagStateActive = true;
-                                stopScanHandler();
-                            }
-                        }
-
-                    }
-                };
-        if (enable) {
-            mScanning = true;
-            mBluetoothAdapter.startLeScan(mLeScanCallback);
-        } else {
-            mScanning = false;
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-        }
-    }
-
-    private void scanLeDevice21(boolean enable) {
-        if (mLeScanCallback == null) {
-            mLeScanCallback = new ScanCallback() {
-                @Override
-                public void onScanResult(int callbackType, ScanResult result) {
-                    super.onScanResult(callbackType, result);
-
-                    if (result.getScanRecord() != null) {
-
-                        CollectedHitagTS hitag = CollectedHitagTS.getHitag(result.getDevice(),
-                                result.getScanRecord().getBytes(),
-                                result.getRssi());
-
-                        if (hitag != null) {
-
-                            lastHitagTimeStamp = System.currentTimeMillis();
-                            hitag.setLastSeen(lastHitagTimeStamp);
-
-                            if (activeHitags.containsKey(hitag.getId())) {
-                                CollectedHitagTS currentHitag = activeHitags.get(hitag.getId());
-
-                                if (hitag.isBeacon()) {
-                                    currentHitag.setRssi(hitag.getRssi());
-                                    currentHitag.setLastSeen(hitag.getLastSeen());
-
-                                    //activeHitags.put(currentHitag.getId(), hitag);
-                                } else {
-                                    activeHitags.put(hitag.getId(), hitag);
-                                }
-                            } else {
-                                if (!hitag.isBeacon())
-                                    activeHitags.put(hitag.getId(), hitag);
-                            }
-
-                            if (!hitagStateActive) {
-                                hitagStateActive = true;
-                                stopScanHandler();
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void onScanFailed(int errorCode) {
-                    super.onScanFailed(errorCode);
-                }
-            };
-        }
-
-        final BluetoothLeScanner bluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-
-        if (enable) {
-            ScanSettings settings = new ScanSettings.Builder()
-                    .setScanMode(android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY)
-                    .build();
-
-            bluetoothLeScanner.startScan(new ArrayList<ScanFilter>(), settings, mLeScanCallback);
-
-            mScanning = true;
-
-        } else {
-            mScanning = false;
-            bluetoothLeScanner.stopScan(mLeScanCallback);
-        }
+        mBleScanner.stopScan(mBluetoothAdapter, scanCallback);
     }
 
     public static boolean validateActiveHitag(String hitagId) {
@@ -286,7 +182,7 @@ final public class HitagScanService extends Service {
                                        pintent);
     }
 
-    private void startReporter() {
+    private void doReport() {
         long currentTime = System.currentTimeMillis();
 
         Iterator<String> iter = activeHitags.keySet().iterator();
@@ -331,7 +227,7 @@ final public class HitagScanService extends Service {
         mHitagReportHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                startReporter();
+                doReport();
 
             }
         }, 1000);
@@ -382,6 +278,10 @@ final public class HitagScanService extends Service {
             passiveHitags.clear();
             passiveHitags = null;
         }
+
+        stopScanning();
+        mHandler.removeCallbacks(startScanRunnable);
+        mBetweenHandler.removeCallbacks(stopScanRunnable);
     }
 
     @Nullable

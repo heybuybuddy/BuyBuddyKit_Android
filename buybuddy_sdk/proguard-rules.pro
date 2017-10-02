@@ -52,9 +52,16 @@
 # Retrolambda
 
 -keepattributes *Annotation*
+-keepattributes Annotation
+
 -keepclassmembers class ** {
     @org.greenrobot.eventbus.Subscribe <methods>;
 }
+
+-keepclassmembers class ** {
+    @org.greenrobot.eventbus.Subscribe public *;
+}
+
 -keep enum org.greenrobot.eventbus.ThreadMode { *; }
 
 # Only required if you use AsyncExecutor

@@ -8,6 +8,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/bluetoothcompat" />
             <option value="$PROJECT_DIR$/buybuddy_sdk" />
             <option value="$PROJECT_DIR$/sampledelegateapp" />
           </set>

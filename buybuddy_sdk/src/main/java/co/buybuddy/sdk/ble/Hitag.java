@@ -169,7 +169,7 @@ class Hitag {
 
             if (newState == STATE_CONNECTED) {
                 connectionTimeoutHandler.removeCallbacks(timeOutRunnable);
-                notifyTimeoutHandler.postDelayed(notifyRunnable, 10000);
+                notifyTimeoutHandler.postDelayed(notifyRunnable, 15000);
                 hitagGatt.discoverServices();
             } else if (newState == STATE_DISCONNECTED){
                 hitagGatt.close();
@@ -288,7 +288,7 @@ class Hitag {
                     if (HitagState.compare(HitagState.PASSWORD_FIRST_PAYLOAD, value)) {
 
                         notifyTimeoutHandler.removeCallbacks(notifyRunnable);
-                        notifyTimeoutHandler.postDelayed(notifyRunnable, 3000);
+                        notifyTimeoutHandler.postDelayed(notifyRunnable, 5000);
 
                         currentState = HitagState.PASSWORD_FIRST_PAYLOAD;
 
@@ -299,7 +299,7 @@ class Hitag {
                     }else if (HitagState.compare(HitagState.PASSWORD_SECOND_PAYLOAD, value)) {
 
                         notifyTimeoutHandler.removeCallbacks(notifyRunnable);
-                        notifyTimeoutHandler.postDelayed(notifyRunnable, 3000);
+                        notifyTimeoutHandler.postDelayed(notifyRunnable, 5000);
 
                         currentState = HitagState.PASSWORD_SECOND_PAYLOAD;
 
@@ -314,7 +314,7 @@ class Hitag {
                         currentState = HitagState.STATE_UNLOCKING;
 
                         notifyTimeoutHandler.removeCallbacks(notifyRunnable);
-                        notifyTimeoutHandler.postDelayed(notifyRunnable, 10000);
+                        notifyTimeoutHandler.postDelayed(notifyRunnable, 15000);
 
                     }else if (HitagState.compare(HitagState.STATE_UNLOCKED, value)) {
 

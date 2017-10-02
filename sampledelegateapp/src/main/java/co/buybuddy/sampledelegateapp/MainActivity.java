@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.Button;
 
 
+import com.forkingcode.bluetoothcompat.BluetoothLeCompatException;
+
 import java.util.Set;
 
 import co.buybuddy.sdk.BuyBuddy;
@@ -49,14 +51,16 @@ public class MainActivity extends AppCompatActivity {
         btnRelease.setAlpha(0);
 
         hitagIds = new ArraySet<>();
-        //hitagIds.add("FRKN00395");
-        hitagIds.add("ERSL01623");
+        hitagIds.add("FRKN00603");
+        hitagIds.add("ERSL01332");
+        //hitagIds.add("SVDA01085");
         //hitagIds.add("SVDA00907");
         //hitagIds.add("SVDA00836");
 
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
-                .setUserToken("9Bxs2WY8Sq6y4wYu5SIjUbM6kZl/iENIrfqAaBxAtcGNddDZcU1ANI9g7wUVM4rEDkup8J5gQzuWfGE9uPGhYe==");
+                .setSandBoxMode(true)
+                .setUserToken("ersello");
 
         btnCreateOrder.setVisibility(GONE);
 
@@ -141,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onExceptionThrown(HitagReleaserException exception) {
+                    public void onExceptionThrown(BluetoothLeCompatException exception) {
                         super.onExceptionThrown(exception);
 
                         Log.d("*x* EXCEPTION", "ex" + exception.toString());
@@ -171,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
                     BuyBuddy.getInstance().shoppingCart.addToBasket(first);
                 }
 
-                if (BuyBuddy.getInstance().shoppingCart.getItems().size() == 1) {
+                if (BuyBuddy.getInstance().shoppingCart.getItems().size() == hitagIds.size()) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -184,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void error(BuyBuddyApiError error) {
-                Log.d("BB ERROR", error.toString());
+                Log.d("BB ERROR", error.toString() + " " + error.getResponseCode());
             }
         });
     }

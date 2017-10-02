@@ -13,6 +13,7 @@ import okhttp3.Response;
 
 class BuyBuddyAuthorization implements Interceptor{
 
+    private static String TAG = "BuyBuddyAuthorization";
     private BuyBuddyTokenManager tokenManager;
     private BuyBuddyUserTokenExpiredDelegate delegate;
 
@@ -38,20 +39,15 @@ class BuyBuddyAuthorization implements Interceptor{
 
         //save token of this request for future
 
-        if (tokenManager.getJwt() == null){
-            refreshJwt();
-        }
-
         String jwt = tokenManager.getJwt();
         if (jwt == null){
-            refreshJwt();
+            synchronized (BuyBuddy.getInstance().api.client) {
+                refreshJwt();
+            }
         }
 
         setAuthHeader(builder); //write current token to request
-
         request = builder.build(); //overwrite old request
-
-
         Response response = chain.proceed(request); //perform request, here original request will be executed
 
         if (response.code() == 401) { //if unauthorized
@@ -93,11 +89,15 @@ class BuyBuddyAuthorization implements Interceptor{
         try {
             BuyBuddyApiObject<BuyBuddyJwt> jwt = BuyBuddy.getInstance().api.getJwt(tokenManager.getToken());
 
+            BuyBuddyUtil.printD(TAG, "jwt is refreshing");
+
             if (jwt != null){
                 if (jwt.getData() != null && jwt.getData().getJwt() != null)
+                    BuyBuddyUtil.printD(TAG, "jwt fetched");
                     tokenManager.setJwt(jwt.getData().getJwt());
                 return 200;
             }
+            BuyBuddyUtil.printD(TAG, "jwt couldn't be fetched");
             return 400;
 
         } catch (BuyBuddyApiError buyBuddyApiError) {

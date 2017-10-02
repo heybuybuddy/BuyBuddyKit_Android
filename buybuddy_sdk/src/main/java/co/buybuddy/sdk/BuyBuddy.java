@@ -72,8 +72,5 @@ public class BuyBuddy {
 
         mContext.startService(new Intent(getContext(), HitagScanService.class));
         mContext.stopService(new Intent(getContext(), BuyBuddyHitagReleaser.class));
-
-        long periodSecs = 30L; // the task should be executed every 30 seconds
-        long flexSecs = 15L; // the task can run as early as -15 seconds from the scheduled time
     }
 }

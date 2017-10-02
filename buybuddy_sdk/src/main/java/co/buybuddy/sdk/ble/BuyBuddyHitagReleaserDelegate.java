@@ -1,5 +1,7 @@
 package co.buybuddy.sdk.ble;
 
+import com.forkingcode.bluetoothcompat.BluetoothLeCompatException;
+
 import co.buybuddy.sdk.ble.exception.HitagReleaserException;
 
 public abstract class BuyBuddyHitagReleaserDelegate implements IBuyBuddyHitagReleaser {
@@ -10,7 +12,7 @@ public abstract class BuyBuddyHitagReleaserDelegate implements IBuyBuddyHitagRel
      */
 
     @Override
-    public void onExceptionThrown(HitagReleaserException exception) {
+    public void onExceptionThrown(BluetoothLeCompatException exception) {
 
     }
 
