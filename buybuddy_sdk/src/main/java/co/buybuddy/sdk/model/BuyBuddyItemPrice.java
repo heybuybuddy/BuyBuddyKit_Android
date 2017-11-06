@@ -1,12 +1,38 @@
 package co.buybuddy.sdk.model;
 
+import java.math.BigDecimal;
+
 final public class BuyBuddyItemPrice {
-    private float current_price;
+    private float price;
     private float discount_price;
     private float ex_price;
+    private float old_price;
+    private boolean isCampaignApplied = false;
+    private float campaigned_price;
+
+    public float getCampaignedPrice() {
+        return campaigned_price;
+    }
+
+    public void setCampaignedPrice(float price) {
+        isCampaignApplied = true;
+        this.campaigned_price = price;
+    }
+
+    public float getOldPrice() {
+        return old_price;
+    }
+
+    public boolean isCampaignApplied() {
+        return isCampaignApplied;
+    }
+
+    public void unsetCampaigns() {
+        this.isCampaignApplied = false;
+    }
 
     public float getCurrentPrice() {
-        return current_price;
+        return price;
     }
 
     public float getDiscountedPrice() {

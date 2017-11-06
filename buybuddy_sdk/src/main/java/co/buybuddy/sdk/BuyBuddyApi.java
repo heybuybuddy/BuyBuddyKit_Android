@@ -15,6 +15,7 @@ import java.util.Map;
 import co.buybuddy.sdk.ble.CollectedHitag;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.model.HitagPasswordPayload;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
@@ -25,6 +26,7 @@ import co.buybuddy.sdk.responses.OrderDelegateDetail;
 import co.buybuddy.sdk.model.BuyBuddyItem;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -160,7 +162,9 @@ public final class BuyBuddyApi {
                 break;
         }
 
-        Response response = new OkHttpClient().newCall(builder.build()).execute();
+        OkHttpClient client = new OkHttpClient.Builder().build();
+
+        Response response = client.newCall(builder.build()).execute();
         String responseStr = null;
 
         if (response.body() != null){
@@ -266,13 +270,23 @@ public final class BuyBuddyApi {
                 delegate);
     }
 
-    public void createOrder(int[] hitagIds, float sub_total, BuyBuddyApiCallback<OrderDelegate> delegate){
+    void createOrder(int[] hitagIds, int[] campaingIds,float sub_total, BuyBuddyApiCallback<OrderDelegate> delegate){
 
         call(OrderDelegate.class,
              BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.OrderDelegate, new ParameterMap().add("order_delegate", new ParameterMap()
+                                                                                                            .add("campaigns", campaingIds)
                                                                                                             .add("hitags", hitagIds)
                                                                                                             .add("sub_total", sub_total).getMap())),
              delegate);
+    }
+
+    void getCampaigns(int[] hitagIds, BuyBuddyApiCallback<BuyBuddyBasketCampaign> delegate) {
+
+        BuyBuddyHttpModel model =
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.GetCampaings, new ParameterMap().add("hitag_ids", hitagIds).add("basket", false));
+
+        call(BuyBuddyBasketCampaign.class, model, delegate);
+
     }
 
     BuyBuddyApiObject<BuyBuddyJwt> getJwt(String token) throws BuyBuddyApiError, IOException {

@@ -29,11 +29,8 @@ public class BuyBuddy {
         api = new BuyBuddyApi();
         shoppingCart = new BuyBuddyShoppingCartManager();
 
-        locationServicesStatus = new LocationServicesStatus(
-                                        new CheckerLocationProvider(
-                                                (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE)),
-                                        new CheckerLocationPermission(getContext()), android.os.Build.VERSION.SDK_INT,
-                                                getContext().getApplicationInfo().targetSdkVersion, false);
+        locationServicesStatus = new LocationServicesStatus( new CheckerLocationProvider( (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE)),
+                                                             new CheckerLocationPermission(getContext()), android.os.Build.VERSION.SDK_INT, getContext().getApplicationInfo().targetSdkVersion, false);
     }
 
     public LocationServicesStatus getLocationServicesStatus() {
@@ -70,7 +67,7 @@ public class BuyBuddy {
             ex.printStackTrace();
         }
 
-        mContext.startService(new Intent(getContext(), HitagScanService.class));
+        //mContext.startService(new Intent(getContext(), HitagScanService.class));
         mContext.stopService(new Intent(getContext(), BuyBuddyHitagReleaser.class));
     }
 }

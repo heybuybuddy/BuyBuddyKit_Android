@@ -39,6 +39,7 @@ public enum HitagState {
     DISCONNECTED("DISCONNECTED"),
 
     INITIALIZING("init"),
+    DISCOVERING("discovering"),
 
     NOT_FOUND("NOT_FOUND"),
     CONNECTION_FAILED("CONNECTION_FAILED");

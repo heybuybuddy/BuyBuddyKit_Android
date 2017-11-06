@@ -1,25 +1,33 @@
 package co.buybuddy.sampledelegateapp;
 
+import android.graphics.Color;
 import android.support.v4.util.ArraySet;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-
-import com.forkingcode.bluetoothcompat.BluetoothLeCompatException;
-
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.util.Locale;
 import java.util.Set;
 
+import co.buybuddy.sampledelegateapp.adapter.HitagReleaseStatusAdapter;
+import co.buybuddy.sampledelegateapp.adapter.HitagViewHolder;
 import co.buybuddy.sdk.BuyBuddy;
+import co.buybuddy.sdk.BuyBuddyShoppingCartDelegate;
+import co.buybuddy.sdk.BuyBuddyUtil;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaserDelegate;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaseManager;
 import co.buybuddy.sdk.ble.HitagState;
-import co.buybuddy.sdk.ble.exception.HitagReleaserBleException;
-import co.buybuddy.sdk.ble.exception.HitagReleaserException;
+import co.buybuddy.sdk.ble.blecompat.BluetoothLeCompatException;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
 import co.buybuddy.sdk.model.BuyBuddyItem;
@@ -30,13 +38,16 @@ import static android.view.View.GONE;
 public class MainActivity extends AppCompatActivity {
 
     long orderId = -1;
-    volatile float totalBasket = 0;
+    volatile BigDecimal totalBasket = new BigDecimal("0");
     BuyBuddyHitagReleaseManager manager;
 
     Button btnReset, btnCreateOrder, btnRelease;
-
     Set<String> hitagIds;
+    RecyclerView hitagStatusView;
+    HitagReleaseStatusAdapter hitagStatusAdapter;
 
+    String qwe = "Furkan";
+    String qwe2 = qwe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,16 +62,12 @@ public class MainActivity extends AppCompatActivity {
         btnRelease.setAlpha(0);
 
         hitagIds = new ArraySet<>();
-        hitagIds.add("FRKN00603");
-        hitagIds.add("ERSL01332");
-        //hitagIds.add("SVDA01085");
-        //hitagIds.add("SVDA00907");
-        //hitagIds.add("SVDA00836");
+        hitagIds.add("FRKN00395");
 
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
                 .setSandBoxMode(true)
-                .setUserToken("ersello");
+                .setUserToken("vbf3/4RsQkyhFb7LRavWkWKK23r/a0PUo1KX5ldSw+26hPKaNstLiYZuz0zuHKHuB909/Y85RN2wu1jFiR1XEg==");
 
         btnCreateOrder.setVisibility(GONE);
 
@@ -78,30 +85,30 @@ public class MainActivity extends AppCompatActivity {
             getProduct(hitagId);
         }
 
+        final GridLayoutManager layoutManager = new GridLayoutManager(this,3);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+
+        hitagStatusView = findViewById(R.id.hitagStatusView);
+        hitagStatusView.setLayoutManager(layoutManager);
+        hitagStatusAdapter = new HitagReleaseStatusAdapter(this);
+        hitagStatusView.setAdapter(hitagStatusAdapter);
+        hitagStatusView.setItemAnimator(null);
+
         btnCreateOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                BuyBuddy.getInstance().api.createOrder(BuyBuddy.getInstance().shoppingCart.getHitagIdentifiers(), totalBasket,
+            BuyBuddy.getInstance().shoppingCart.createOrder(new BuyBuddyApiCallback<OrderDelegate>() {
+                @Override
+                public void success(BuyBuddyApiObject<OrderDelegate> response) {
 
-                        new BuyBuddyApiCallback<OrderDelegate>() {
-                            @Override
-                            public void success(BuyBuddyApiObject<OrderDelegate> response) {
-                                orderId = response.getData().getOrderId();
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        btnRelease.setVisibility(View.VISIBLE);
-                                        btnRelease.animate().alpha(1).setDuration(500);
-                                    }
-                                });
-                            }
+                }
 
-                            @Override
-                            public void error(BuyBuddyApiError error) {
+                @Override
+                public void error(BuyBuddyApiError error) {
 
-                            }
-                        });
+                }
+            });
 
             }
         });
@@ -111,8 +118,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 orderId = -1;
                 btnRelease.setVisibility(GONE);
-                //btnCreateOrder.setVisibility(GONE);
                 getOrderId();
+
+                hitagStatusAdapter.clear();
             }
         });
 
@@ -121,27 +129,79 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                manager.retryReleasing().subscribeForHitagEvents(new BuyBuddyHitagReleaserDelegate() {
+                manager.startReleasing(orderId).subscribeForHitagEvents(new BuyBuddyHitagReleaserDelegate() {
 
                     @Override
-                    public void onHitagEvent(String hitagId, HitagState event) {
+                    public void onHitagEvent(final String hitagId, HitagState event) {
                         super.onHitagEvent(hitagId, event);
 
                         Log.d("*x* HitagEvent", hitagId + " " + event.name());
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                hitagStatusAdapter.updateHitag(hitagId, 1, Color.GRAY);
+
+                                int viewPosition = hitagStatusAdapter.findPositionWith(hitagId);
+                                if (viewPosition != -1) {
+                                    HitagViewHolder holder = (HitagViewHolder) hitagStatusView.findViewHolderForLayoutPosition(viewPosition);
+                                    if (holder != null) {
+                                        Log.d("HOLDER FOUND", hitagId);
+                                    } else {
+                                        Log.d("HOLDER NOT FOUND", hitagId);
+                                    }
+                                }
+                            }
+                        });
                     }
 
                     @Override
-                    public void onHitagReleased(String hitagId) {
+                    public void onHitagReleased(final String hitagId) {
                         super.onHitagReleased(hitagId);
 
                         Log.d("*x* HitagReleased", hitagId);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                hitagStatusAdapter.updateHitag(hitagId, 1, Color.GREEN);
+
+                                int viewPosition = hitagStatusAdapter.findPositionWith(hitagId);
+                                if (viewPosition != -1) {
+                                    HitagViewHolder holder = (HitagViewHolder) hitagStatusView.findViewHolderForLayoutPosition(viewPosition);
+                                    if (holder != null) {
+                                        Log.d("HOLDER FOUND", hitagId);
+                                        hitagStatusAdapter.animateLights(holder, Color.GREEN);
+                                    } else {
+                                        Log.d("HOLDER NOT FOUND", hitagId);
+                                    }
+                                }
+                            }
+                        });
                     }
 
                     @Override
-                    public void onHitagFailed(String hitagId, HitagState event) {
+                    public void onHitagFailed(final String hitagId, HitagState event) {
                         super.onHitagFailed(hitagId, event);
 
                         Log.d("*x* Failed", hitagId + " reason :" + event);
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                hitagStatusAdapter.updateHitag(hitagId, 1, Color.RED);
+
+                                int viewPosition = hitagStatusAdapter.findPositionWith(hitagId);
+                                if (viewPosition != -1) {
+                                    HitagViewHolder holder = (HitagViewHolder) hitagStatusView.findViewHolderForLayoutPosition(viewPosition);
+                                    if (holder != null) {
+                                        Log.d("HOLDER FOUND", hitagId);
+                                        hitagStatusAdapter.animateLights(holder, Color.RED);
+                                    } else {
+                                        Log.d("HOLDER NOT FOUND", hitagId);
+                                    }
+                                }
+                            }
+                        });
                     }
 
                     @Override
@@ -160,6 +220,10 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+
+        qwe2 = "f";
+        Log.d("", "onCreate: ");
+
     }
 
     public void getProduct(String hitagId) {
@@ -170,9 +234,17 @@ public class MainActivity extends AppCompatActivity {
                 synchronized (BuyBuddy.getInstance().shoppingCart) {
 
                     final BuyBuddyItem first = response.getData();
-                    totalBasket += first.getPrice().getCurrentPrice();
 
-                    BuyBuddy.getInstance().shoppingCart.addToBasket(first);
+                    totalBasket = totalBasket.add(new BigDecimal(first.getPrice().getCurrentPrice()), MathContext.DECIMAL64);
+
+                    BuyBuddyUtil.printD("PRICE : ", response.getData().getPrice().getCurrentPrice() + "");
+
+                    BuyBuddy.getInstance().shoppingCart.addToBasket(first, new BuyBuddyShoppingCartDelegate() {
+                        @Override
+                        public void basketAndCampaingsUpdated() {
+
+                        }
+                    });
                 }
 
                 if (BuyBuddy.getInstance().shoppingCart.getItems().size() == hitagIds.size()) {

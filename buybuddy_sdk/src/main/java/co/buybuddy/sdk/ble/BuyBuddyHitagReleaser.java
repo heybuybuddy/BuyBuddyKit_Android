@@ -17,33 +17,29 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
-import com.forkingcode.bluetoothcompat.BluetoothLeCompatException;
-import com.forkingcode.bluetoothcompat.BluetoothLeScannerCompat;
-import com.forkingcode.bluetoothcompat.ScanCallbackCompat;
-import com.forkingcode.bluetoothcompat.ScanFilterCompat;
-import com.forkingcode.bluetoothcompat.ScanResultCompat;
-import com.forkingcode.bluetoothcompat.ScanSettingsCompat;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.UUID;
 
 import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.BuyBuddyBluetoothState;
 import co.buybuddy.sdk.BuyBuddyUtil;
-import co.buybuddy.sdk.ble.exception.HitagReleaserBleException;
+import co.buybuddy.sdk.HitagScanService;
+import co.buybuddy.sdk.ble.blecompat.BluetoothLeCompatException;
+import co.buybuddy.sdk.ble.blecompat.BluetoothLeScannerCompat;
+import co.buybuddy.sdk.ble.blecompat.ScanCallbackCompat;
+import co.buybuddy.sdk.ble.blecompat.ScanResultCompat;
 import co.buybuddy.sdk.ble.exception.HitagReleaserException;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.model.HitagPasswordPayload;
@@ -55,7 +51,6 @@ import co.buybuddy.sdk.responses.OrderDelegateDetail;
 
 import static android.bluetooth.BluetoothProfile.STATE_CONNECTED;
 import static android.bluetooth.BluetoothProfile.STATE_DISCONNECTED;
-import static com.forkingcode.bluetoothcompat.ScanSettingsCompat.SCAN_MODE_LOW_LATENCY;
 
 /**
  * Created by Furkan Ençkü on 8/22/17.
@@ -71,7 +66,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
     private BluetoothLeScannerCompat mBleScanner;
     private ScanCallbackCompat mScanCallback;
     Handler mHandler;
-    boolean mScanning = false;
+    boolean isDestroyed = false;
     long currentOrderId = -1;
 
     HashSet<String> hitagList;
@@ -84,7 +79,11 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
     int scanRestartCount = 0;
 
     HashMap<String, Hitag> deviceMap;
-    final String TAG = "BBuddyHRS";
+    HashMap<String, BluetoothDevice> hitagRestoredDevice;
+
+
+
+    final String TAG = "*_hr_* HitagReleaser";
     final String instanceID = UUID.randomUUID().toString();
 
     Handler mWatcher;
@@ -170,14 +169,16 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
         mBluetoothManager = (BluetoothManager) this.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mBleScanner = new BluetoothLeScannerCompat(this);
+
         mScanCallback = new ScanCallbackCompat() {
             @Override
-            public void onScanResult(int callbackType, ScanResultCompat result) {
+            public void onScanResult(int callbackType, final ScanResultCompat result) {
                 super.onScanResult(callbackType, result);
 
                 if (willOpenDevices.size() == 0 && tryingDevices.size() == 0) {
                     stopScanning();
                     EventBus.getDefault().post(new HitagEventFromService(null, null).setEventType(2));
+                    EventBus.getDefault().unregister(BuyBuddyHitagReleaser.this);
                     stopSelf();
                 }
 
@@ -185,7 +186,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                     if (result.getScanRecord() != null) {
                         if (result.getScanRecord().getBytes() != null) {
 
-                            CollectedHitagTS hitag = CollectedHitagTS.getHitag(null, result.getScanRecord().getBytes(), result.getRssi());
+                            final CollectedHitagTS hitag = CollectedHitagTS.getHitag(null, result.getScanRecord().getBytes(), result.getRssi());
 
                             if (hitag != null) {
 
@@ -212,7 +213,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
                                         deviceMap.put(hitag.getId(), willConnectHitag);
 
-                                        BuyBuddyUtil.printD(TAG, "Connection or Connected or Finished");
+                                        BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitag.getId() + " will connect");
                                     }
                                 }
                             }
@@ -227,18 +228,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
             }
         };
 
-        deviceMap = new HashMap<>();
-        willOpenDevices = new HashSet<>();
-        hitagList = new HashSet<>();
-        failedDevices = new HashMap<>();
-        openedDevices = new HashSet<>();
-        tryingDevices = new HashSet<>();
-        tryCountForDevices = new HashMap<>();
-
-        foundHitags = new HashSet<>();
-
-        Log.d("*x*", "Releaser : " + instanceID);
-
+        BuyBuddyUtil.printD(TAG, "Releaser : " + instanceID);
         mWatcher.postDelayed(mWatcherRunnable, 1500);
     }
 
@@ -269,6 +259,16 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+
+        deviceMap = new HashMap<>();
+        willOpenDevices = new HashSet<>();
+        hitagList = new HashSet<>();
+        failedDevices = new HashMap<>();
+        openedDevices = new HashSet<>();
+        tryingDevices = new HashSet<>();
+        tryCountForDevices = new HashMap<>();
+        foundHitags = new HashSet<>();
+        hitagRestoredDevice = new HashMap<>();
 
         if (intent != null) {
             Bundle extras = intent.getExtras();
@@ -355,28 +355,87 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        isDestroyed = true;
+
         EventBus.getDefault().unregister(this);
         for (Hitag htg : deviceMap.values()) {
             htg.disconnect();
             htg.setHitagDelegate(null);
         }
 
-        deviceMap = null;
         notFoundHitagHandler.removeCallbacks(notFoundHitagRunnable);
-        notFoundHitagHandler = null;
-
         mWatcher.removeCallbacks(mWatcherRunnable);
-        mWatcher = null;
-        willOpenDevices = null;
-        failedDevices = null;
         currentOrderId = -1;
     }
 
     private void startScanning() {
-        mBleScanner.startScan(mBluetoothAdapter, mScanCallback);
-        mBleScanner.startScan(mBluetoothAdapter, null, new ScanSettingsCompat.Builder()
-                                                                        .setScanMode(SCAN_MODE_LOW_LATENCY)
-                                                                        .setReportDelay(0).build(), mScanCallback);
+        mBleScanner.stopScan(mBluetoothAdapter, mScanCallback);
+
+        /*final int version = Build.VERSION.SDK_INT;
+        if (version >= Build.VERSION_CODES.LOLLIPOP) {
+            mBleScanner.startScan(mBluetoothAdapter, null, new ScanSettingsCompat.Builder()
+                    .setScanMode(CALLBACK_TYPE_ALL_MATCHES)
+                    .setReportDelay(0).build(), mScanCallback);
+        }
+        else {
+            mBleScanner.startScan(mBluetoothAdapter, mScanCallback);
+        }*/
+
+
+
+        startService(new Intent(this, HitagScanService.class));
+        EventBus.getDefault().register(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    public void onHitagEventFromService(final CollectedHitagTS hitag) {
+
+        if (willOpenDevices.size() == 0 && tryingDevices.size() == 0) {
+            stopScanning();
+            EventBus.getDefault().post(new HitagEventFromService(null, null).setEventType(2));
+            EventBus.getDefault().unregister(BuyBuddyHitagReleaser.this);
+            stopSelf();
+        }
+
+        if (hitagRestoredDevice.get(hitag.getId()) == null)
+            hitagRestoredDevice.put(hitag.getId(), hitag.getDevice());
+
+        if (!foundHitags.contains(hitag.getId()) && hitagList.contains(hitag.getId()))
+            foundHitags.add(hitag.getId());
+
+        BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitag.getId());
+
+        if (willOpenDevices.contains(hitag.getId())){
+
+            if (BuyBuddyBleUtils.getMaximumConnectableDeviceCount() - (getConnectedDeviceCount() + tryingDevices.size()) > 1) {
+                willOpenDevices.remove(hitag.getId());
+                tryingDevices.add(hitag.getId());
+
+                if (tryCountForDevices.get(hitag.getId()) != null) {
+                    tryCountForDevices.put(hitag.getId(), tryCountForDevices.get(hitag.getId()) + 1);
+                } else {
+                    tryCountForDevices.put(hitag.getId(), 0);
+                }
+
+                Thread hitagConnection = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Looper.prepare();
+
+                        Hitag willConnectHitag = new Hitag(BuyBuddyHitagReleaser.this, hitag.getDevice())
+                                .setHitagDelegate(BuyBuddyHitagReleaser.this)
+                                .setHitagId(hitag.getId());
+
+                        deviceMap.put(hitag.getId(), willConnectHitag);
+
+                        BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitag.getId() + " will connect");
+                    }
+                });
+
+                hitagConnection.start();
+            }
+        }
     }
 
     private void stopScanning() {
@@ -396,14 +455,35 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                 BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitagId + " disconnected");
                 EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.DISCONNECTED).setEventType(0));
 
+                if (tryingDevices.contains(hitagId) &&
+                        (deviceMap.get(hitagId).getCurrentState() == HitagState.INITIALIZING
+                                || deviceMap.get(hitagId).getCurrentState() == HitagState.DISCOVERING))  {
+
+                    tryCountForDevices.put(hitagId, tryCountForDevices.get(hitagId) + 1);
+
+                    if (tryCountForDevices.get(hitagId) > 4) {
+                        tryingDevices.remove(hitagId);
+                        failedDevices.put(hitagId, HitagState.CONNECTION_FAILED.ordinal());
+                        EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.CONNECTION_FAILED).setEventType(1));
+                    }else {
+                        if (deviceMap.get(hitagId) != null) {
+                            deviceMap.get(hitagId).forceDisconnect();
+                            deviceMap.remove(hitagId);
+                            tryingDevices.remove(hitagId);
+                            willOpenDevices.add(hitagId);
+                        }
+                    }
+                }
+
                 break;
 
             case 99: //CONNECTION UNSUCCESSFUL
+                BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitagId + " try again!");
 
                 if (tryingDevices.contains(hitagId) && deviceMap.get(hitagId).getCurrentState() == HitagState.INITIALIZING) {
                     tryCountForDevices.put(hitagId, tryCountForDevices.get(hitagId) + 1);
 
-                    if (tryCountForDevices.get(hitagId) > 2) {
+                    if (tryCountForDevices.get(hitagId) > 4) {
                         tryingDevices.remove(hitagId);
                         failedDevices.put(hitagId, HitagState.CONNECTION_FAILED.ordinal());
                         EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.CONNECTION_FAILED).setEventType(1));
@@ -499,6 +579,14 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                 @Override
                 public void error(BuyBuddyApiError error) {
                     Log.d("*x**", error.getResponseCode() + "");
+                    Log.d("*x**", "WRONG PASS VERSION");
+
+                    if (error.getResponseCode() == 401) {
+
+                    } else {
+
+                    }
+
                     EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.RELEASE_VALIDATION_FAILED).setEventType(1));
                     if (tryingDevices.contains(hitagId)) {
                         failedDevices.put(hitagId, HitagState.RELEASE_VALIDATION_FAILED.ordinal());

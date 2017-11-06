@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.forkingcode.bluetoothcompat;
+package co.buybuddy.sdk.ble.blecompat;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
@@ -161,7 +161,7 @@ public class ScanFilterCompat implements Parcelable {
     }
 
     /**
-     * A {@link android.os.Parcelable.Creator} to create {@link ScanFilterCompat} from parcel.
+     * A {@link Creator} to create {@link ScanFilterCompat} from parcel.
      */
     public static final Creator<ScanFilterCompat>
             CREATOR = new Creator<ScanFilterCompat>() {
@@ -467,7 +467,7 @@ public class ScanFilterCompat implements Parcelable {
          *
          * @param deviceAddress The device Bluetooth address for the filter. It needs to be in the
          *                      format of "01:02:03:AB:CD:EF". The device address can be validated using
-         *                      {@link android.bluetooth.BluetoothAdapter#checkBluetoothAddress}.
+         *                      {@link BluetoothAdapter#checkBluetoothAddress}.
          * @throws IllegalArgumentException If the {@code deviceAddress} is invalid.
          */
         public Builder setDeviceAddress(String deviceAddress) {

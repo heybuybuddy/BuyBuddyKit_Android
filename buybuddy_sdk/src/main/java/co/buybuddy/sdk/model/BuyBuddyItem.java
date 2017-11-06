@@ -1,5 +1,7 @@
 package co.buybuddy.sdk.model;
 
+import android.support.annotation.Nullable;
+
 /**
  * Created by Furkan Ençkü on 6/12/17.
  * This code written by buybuddy Android Team
@@ -16,6 +18,16 @@ public final class BuyBuddyItem {
     private String image;
     private String description;
     private BuyBuddyItemPrice price;
+    private int[] appliedCampaingIds;
+
+    @Nullable public int[] getAppliedCampaingIds() {
+        return appliedCampaingIds;
+    }
+
+    public BuyBuddyItem setAppliedCampaingIds(int[] appliedCampaingIds) {
+        this.appliedCampaingIds = appliedCampaingIds;
+        return this;
+    }
 
     public String getHitagId() {
         return hitag_id;

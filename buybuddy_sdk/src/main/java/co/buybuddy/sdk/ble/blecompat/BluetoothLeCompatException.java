@@ -1,4 +1,4 @@
-package com.forkingcode.bluetoothcompat;
+package co.buybuddy.sdk.ble.blecompat;
 
 /**
  * Created by furkan on 10/2/17.

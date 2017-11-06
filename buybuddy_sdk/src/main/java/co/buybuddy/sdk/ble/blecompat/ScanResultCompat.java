@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.forkingcode.bluetoothcompat;
+package co.buybuddy.sdk.ble.blecompat;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
@@ -161,7 +161,7 @@ public class ScanResultCompat implements Parcelable {
                 + mTimestampNanos + '}';
     }
 
-    public static final Parcelable.Creator<ScanResultCompat> CREATOR = new Parcelable.Creator<ScanResultCompat>() {
+    public static final Creator<ScanResultCompat> CREATOR = new Creator<ScanResultCompat>() {
         @Override
         public ScanResultCompat createFromParcel(Parcel source) {
             return new ScanResultCompat(source);

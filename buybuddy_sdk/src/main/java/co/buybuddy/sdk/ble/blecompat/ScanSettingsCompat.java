@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.forkingcode.bluetoothcompat;
+package co.buybuddy.sdk.ble.blecompat;
 
 import android.annotation.TargetApi;
 import android.bluetooth.le.ScanSettings;
@@ -108,8 +108,8 @@ public class ScanSettingsCompat implements Parcelable {
         return 0;
     }
 
-    public static final Parcelable.Creator<ScanSettingsCompat>
-            CREATOR = new Parcelable.Creator<ScanSettingsCompat>() {
+    public static final Creator<ScanSettingsCompat>
+            CREATOR = new Creator<ScanSettingsCompat>() {
         @Override
         public ScanSettingsCompat[] newArray(int size) {
             return new ScanSettingsCompat[size];

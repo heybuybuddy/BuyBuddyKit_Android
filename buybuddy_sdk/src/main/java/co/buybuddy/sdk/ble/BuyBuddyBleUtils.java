@@ -16,8 +16,8 @@ public class BuyBuddyBleUtils {
     public static long HITAG_SCAN_INTERVAL_IDLE = 3000L;
     public static long HITAG_SCAN_BETWEEN_INTERVAL_IDLE = 30000L;
 
-    public static long HITAG_SCAN_INTERVAL_ACTIVE = 1000L;
-    public static long HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE = 800L;
+    public static long HITAG_SCAN_INTERVAL_ACTIVE = 10000L;
+    public static long HITAG_SCAN_BETWEEN_INTERVAL_ACTIVE = 1300L;
 
     public final static int HITAG_TYPE_CUSTOM = 6;
     public final static int HITAG_TYPE_BEACON = 3;

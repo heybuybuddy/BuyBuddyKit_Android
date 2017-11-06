@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.forkingcode.bluetoothcompat;
+package co.buybuddy.sdk.ble.blecompat;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
@@ -53,8 +53,6 @@ public class BluetoothLeScannerCompat {
 
         boolean isScannable = true;
 
-        implementation.startScan(adapter, filters, settings, callbackCompat);
-
         try {
             isBleScannable(adapter);
         } catch (BluetoothLeCompatException ex) {
@@ -63,7 +61,7 @@ public class BluetoothLeScannerCompat {
         }
 
         if (isScannable) {
-            implementation.startScan(adapter, callbackCompat);
+            implementation.startScan(adapter, filters, settings, callbackCompat);
         }
     }
 
@@ -94,7 +92,7 @@ public class BluetoothLeScannerCompat {
 
         this.locationServiceStatus = new LocationServicesStatus(
                 new CheckerLocationProvider((LocationManager) context.getSystemService(Context.LOCATION_SERVICE)),
-                new CheckerLocationPermission(context), android.os.Build.VERSION.SDK_INT, context.getApplicationInfo().targetSdkVersion, false);
+                new CheckerLocationPermission(context), Build.VERSION.SDK_INT, context.getApplicationInfo().targetSdkVersion, false);
 
         final int version = Build.VERSION.SDK_INT;
         if (version >= Build.VERSION_CODES.LOLLIPOP) {
@@ -149,7 +147,9 @@ public class BluetoothLeScannerCompat {
 
         @Override
         public void startScan(BluetoothAdapter adapter, ScanCallbackCompat callbackCompat) {
-            adapter.getBluetoothLeScanner().startScan(registerCallback(callbackCompat));
+            if (adapter != null)
+                if (adapter.getBluetoothLeScanner() != null)
+                    adapter.getBluetoothLeScanner().startScan(registerCallback(callbackCompat));
         }
 
         @Override
@@ -158,7 +158,10 @@ public class BluetoothLeScannerCompat {
             if (result == null) {
                 return;
             }
-            adapter.getBluetoothLeScanner().stopScan(result);
+
+            if (adapter != null)
+                if (adapter.getBluetoothLeScanner() != null)
+                    adapter.getBluetoothLeScanner().stopScan(result);
         }
 
         private API21ScanCallback registerCallback(ScanCallbackCompat callbackCompat) {
@@ -186,13 +189,15 @@ public class BluetoothLeScannerCompat {
         @SuppressWarnings("deprecation")
         @Override
         public void startScan(BluetoothAdapter adapter, List<ScanFilterCompat> filters, ScanSettingsCompat settings, ScanCallbackCompat callbackCompat) {
-            adapter.startLeScan(registerCallback(filters, callbackCompat));
+            if (adapter != null)
+                adapter.startLeScan(registerCallback(filters, callbackCompat));
         }
 
         @SuppressWarnings("deprecation")
         @Override
         public void startScan(BluetoothAdapter adapter, ScanCallbackCompat callbackCompat) {
-            adapter.startLeScan(registerCallback(null, callbackCompat));
+            if (adapter != null)
+                adapter.startLeScan(registerCallback(null, callbackCompat));
         }
 
         @SuppressWarnings("deprecation")
@@ -202,7 +207,9 @@ public class BluetoothLeScannerCompat {
             if (callback == null) {
                 return;
             }
-            adapter.stopLeScan(callback);
+
+            if (adapter != null)
+                adapter.stopLeScan(callback);
         }
 
         private API18ScanCallback registerCallback(List<ScanFilterCompat> filters, ScanCallbackCompat callbackCompat) {

@@ -5,40 +5,32 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.widget.Toast;
 
-import com.forkingcode.bluetoothcompat.BluetoothLeScannerCompat;
-import com.forkingcode.bluetoothcompat.ScanCallbackCompat;
-import com.forkingcode.bluetoothcompat.ScanResultCompat;
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import co.buybuddy.sdk.ble.BuyBuddyBleUtils;
 import co.buybuddy.sdk.ble.CollectedHitag;
 import co.buybuddy.sdk.ble.CollectedHitagTS;
-import co.buybuddy.sdk.ble.exception.HitagReleaserBleException;
+import co.buybuddy.sdk.ble.blecompat.BluetoothLeScannerCompat;
+import co.buybuddy.sdk.ble.blecompat.ScanCallbackCompat;
+import co.buybuddy.sdk.ble.blecompat.ScanResultCompat;
+import co.buybuddy.sdk.ble.blecompat.ScanSettingsCompat;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
 import co.buybuddy.sdk.responses.BuyBuddyBase;
-
 
 /**
  * Created by Furkan Ençkü on 6/12/17.
@@ -58,16 +50,24 @@ final public class HitagScanService extends Service  {
     private final static String TAG = "HitagScanService";
 
     private long lastHitagTimeStamp;
+    private long lastReportingLoopTimeStamp = -1;
     private boolean hitagStateActive = true;
 
-    static Map<String, CollectedHitagTS> activeHitags;
-    static Map<String, CollectedHitagTS> passiveHitags;
-    static ArrayList<CollectedHitag> collectedHitags;
+    static Map<String, CollectedHitagTS> activeHitags = new HashMap<>();
+    static Map<String, CollectedHitagTS> passiveHitags = new HashMap<>();
+    static ArrayList<CollectedHitag> collectedHitags = new ArrayList<>();
 
     private void initStartBluetoothScan() {
 
-        startScanning();
-        doReport();
+        startScanWithHandler();
+
+        if (lastReportingLoopTimeStamp == -1 || System.currentTimeMillis() - lastHitagTimeStamp > 10000) {
+            if (mHitagReportHandler != null) {
+                mHitagReportHandler.removeCallbacks(reportRunnable);
+                mHitagReportHandler.postDelayed(reportRunnable, 1000);
+            }
+        }
+
         startAlarmManager();
     }
 
@@ -83,10 +83,6 @@ final public class HitagScanService extends Service  {
         mHandler = new Handler();
         mBetweenHandler = new Handler();
         mHitagReportHandler = new Handler();
-
-        activeHitags = new HashMap<>();
-        passiveHitags = new HashMap<>();
-        collectedHitags = new ArrayList<>();
 
         mBleScanner = new BluetoothLeScannerCompat(this);
 
@@ -105,6 +101,7 @@ final public class HitagScanService extends Service  {
 
                         lastHitagTimeStamp = System.currentTimeMillis();
                         hitag.setLastSeen(lastHitagTimeStamp);
+                        hitag.setDevice(result.getDevice());
 
                         if (activeHitags.containsKey(hitag.getId())) {
                             CollectedHitagTS currentHitag = activeHitags.get(hitag.getId());
@@ -125,6 +122,11 @@ final public class HitagScanService extends Service  {
                             hitagStateActive = true;
                             stopScanHandler();
                         }
+
+                        if(EventBus.getDefault().hasSubscriberForEvent(CollectedHitagTS.class)) {
+                            EventBus.getDefault().post(hitag);
+                        }
+
                     }
                 }
             }
@@ -144,19 +146,30 @@ final public class HitagScanService extends Service  {
 
         initStartBluetoothScan();
 
+        BuyBuddyUtil.printD(TAG, "onStart");
+
         return START_STICKY;
     }
 
     private void startScanning() {
-        mBleScanner.stopScan(mBluetoothAdapter, scanCallback);
-        mBleScanner.startScan(mBluetoothAdapter, scanCallback);
+        ScanSettingsCompat.Builder scanSettingsBuilder = new ScanSettingsCompat.Builder();
+        scanSettingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+        scanSettingsBuilder.setReportDelay(0);
+
+        mBleScanner.startScan(mBluetoothAdapter, null, scanSettingsBuilder.build(), scanCallback);
+        BuyBuddyUtil.printD(TAG, "BLE SCAN ON");
     }
 
     private void stopScanning() {
         mBleScanner.stopScan(mBluetoothAdapter, scanCallback);
+        BuyBuddyUtil.printD(TAG, "BLE SCAN OFF");
     }
 
     public static boolean validateActiveHitag(String hitagId) {
+
+        if (activeHitags == null)
+            return false;
+
 
         Iterator<String> iter = activeHitags.keySet().iterator();
 
@@ -184,6 +197,8 @@ final public class HitagScanService extends Service  {
 
     private void doReport() {
         long currentTime = System.currentTimeMillis();
+
+        lastReportingLoopTimeStamp = currentTime;
 
         Iterator<String> iter = activeHitags.keySet().iterator();
 
@@ -218,22 +233,19 @@ final public class HitagScanService extends Service  {
                 });
 
 
+            } else {
+                BuyBuddyUtil.printD(TAG, "Reporter: Hitag not found.");
             }
             collectedHitags.clear();
             reportCount = 0;
         }
 
-
-        mHitagReportHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                doReport();
-
-            }
-        }, 1000);
+        mHitagReportHandler.postDelayed(reportRunnable, 1000);
     }
 
     private void stopScanHandler() {
+
+        BuyBuddyUtil.printD(TAG, "stopScanHandler");
 
         mHandler.removeCallbacks(startScanRunnable);
         mBetweenHandler.removeCallbacks(stopScanRunnable);
@@ -244,12 +256,22 @@ final public class HitagScanService extends Service  {
     }
 
     private void startScanWithHandler() {
+
+        BuyBuddyUtil.printD(TAG, "startScanWithHandler");
+
         hitagStateActive = System.currentTimeMillis() - lastHitagTimeStamp <= 31500;
 
         startScanning();
         mBetweenHandler.postDelayed(stopScanRunnable,
                                     hitagStateActive ? BuyBuddyBleUtils.HITAG_SCAN_INTERVAL_ACTIVE : BuyBuddyBleUtils.HITAG_SCAN_INTERVAL_IDLE);
     }
+
+    Runnable reportRunnable = new Runnable() {
+        @Override
+        public void run() {
+            doReport();
+        }
+    };
 
     Runnable stopScanRunnable = new Runnable() {
         @Override
@@ -271,12 +293,10 @@ final public class HitagScanService extends Service  {
 
         if (activeHitags != null) {
             activeHitags.clear();
-            activeHitags = null;
         }
 
         if (passiveHitags != null) {
             passiveHitags.clear();
-            passiveHitags = null;
         }
 
         stopScanning();

@@ -32,10 +32,10 @@ public final class BuyBuddyUtil {
 
      public static void printD(String tag, String message){
         if (DEBUG && message != null && tag != null){
-            if (tag.length() > 10){
-                tag = tag.substring(0, 10);
+            if (tag.length() > 13){
+                tag = tag.substring(0, 13);
             }
-            Log.d("*bbddysdk* " + tag, message);
+            Log.d("*bbsdk* " + tag, message);
         }
     }
 

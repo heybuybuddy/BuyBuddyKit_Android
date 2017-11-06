@@ -28,6 +28,10 @@ public final class CollectedHitagTS extends CollectedHitag {
 
     private BluetoothDevice device;
 
+    public BluetoothDevice getDevice() {
+        return device;
+    }
+
     public void setLastSeen(long lastSeen) {
         this.lastSeen = lastSeen;
     }
@@ -66,7 +70,7 @@ public final class CollectedHitagTS extends CollectedHitag {
         return this;
     }
 
-    CollectedHitagTS setDevice(BluetoothDevice device) {
+    public CollectedHitagTS setDevice(BluetoothDevice device) {
         this.device = device;
         return this;
     }

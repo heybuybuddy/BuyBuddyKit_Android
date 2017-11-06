@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.forkingcode.bluetoothcompat;
+package co.buybuddy.sdk.ble.blecompat;
 
 import java.util.Arrays;
 

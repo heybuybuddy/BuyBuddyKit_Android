@@ -1,1 +1,1 @@
-include ':buybuddy_sdk', ':sampledelegateapp', ':bluetoothcompat'
+include ':buybuddy_sdk', ':sampledelegateapp'

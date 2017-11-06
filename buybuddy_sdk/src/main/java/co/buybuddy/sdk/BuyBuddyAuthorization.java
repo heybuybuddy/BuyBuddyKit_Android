@@ -3,6 +3,8 @@ package co.buybuddy.sdk;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
@@ -33,6 +35,8 @@ class BuyBuddyAuthorization implements Interceptor{
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
 
+        UUID uuid = UUID.randomUUID();
+
         //Build new request
         Request.Builder builder = request.newBuilder();
         builder.header("Accept", "application/json"); //if necessary, say to consume JSON
@@ -41,17 +45,20 @@ class BuyBuddyAuthorization implements Interceptor{
 
         String jwt = tokenManager.getJwt();
         if (jwt == null){
-            synchronized (BuyBuddy.getInstance().api.client) {
+            synchronized (this) {
+                BuyBuddyUtil.printD(TAG, "SYNCRONIZED BLOCK !");
                 refreshJwt();
             }
         }
 
         setAuthHeader(builder); //write current token to request
         request = builder.build(); //overwrite old request
-        Response response = chain.proceed(request); //perform request, here original request will be executed
+        Response response = chain.proceed(request);
 
+         //perform request, here original request will be executed
         if (response.code() == 401) { //if unauthorized
-            synchronized (BuyBuddy.getInstance().api.client) { //perform all 401 in sync blocks, to avoid multiply token updates
+            BuyBuddyUtil.printD(TAG, "UNAUTHORIZED REQ: " + uuid.toString() + "\n" + "token" + tokenManager.getJwt());
+            synchronized (this) { //perform all 401 in sync blocks, to avoid multiply token updates
                 String currentJwt = tokenManager.getJwt(); //get currently stored token
 
                 if(currentJwt != null && currentJwt.equals(jwt)) { //compare current token with token that was stored before, if it was not updated - do update
@@ -64,10 +71,14 @@ class BuyBuddyAuthorization implements Interceptor{
                         return response; //if token refresh failed - show error to user
                     }else {
 
+                        BuyBuddyUtil.printD(TAG, "REFRESHED TOKEN: " + uuid.toString() + "\n" + "token" + tokenManager.getJwt());
+
                         setAuthHeader(builder);
                         request = builder.build();
 
                         response = chain.proceed(request);
+
+                        BuyBuddyUtil.printD(TAG, "REFRESHED RESPONSE: " + response.code());
 
                         return response;
                     }
@@ -89,15 +100,11 @@ class BuyBuddyAuthorization implements Interceptor{
         try {
             BuyBuddyApiObject<BuyBuddyJwt> jwt = BuyBuddy.getInstance().api.getJwt(tokenManager.getToken());
 
-            BuyBuddyUtil.printD(TAG, "jwt is refreshing");
-
             if (jwt != null){
                 if (jwt.getData() != null && jwt.getData().getJwt() != null)
-                    BuyBuddyUtil.printD(TAG, "jwt fetched");
                     tokenManager.setJwt(jwt.getData().getJwt());
                 return 200;
             }
-            BuyBuddyUtil.printD(TAG, "jwt couldn't be fetched");
             return 400;
 
         } catch (BuyBuddyApiError buyBuddyApiError) {

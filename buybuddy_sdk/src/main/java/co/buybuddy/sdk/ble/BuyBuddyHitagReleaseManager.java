@@ -2,7 +2,6 @@ package co.buybuddy.sdk.ble;
 
 import android.content.Intent;
 
-import com.forkingcode.bluetoothcompat.BluetoothLeCompatException;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -10,8 +9,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.BuyBuddyUtil;
-import co.buybuddy.sdk.ble.exception.HitagReleaserBleException;
-import co.buybuddy.sdk.ble.exception.HitagReleaserException;
+import co.buybuddy.sdk.ble.blecompat.BluetoothLeCompatException;
 
 /**
  * Created by Furkan Ençkü on 9/12/17.

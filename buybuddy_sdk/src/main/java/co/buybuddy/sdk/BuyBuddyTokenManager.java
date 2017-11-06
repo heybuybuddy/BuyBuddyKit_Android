@@ -42,12 +42,12 @@ class BuyBuddyTokenManager {
     private static void setJwtToDisk(String jwt){
          BuyBuddyUtil.getSP().edit()
                 .putString(BuyBuddyUtil.JWT_KEY, jwt)
-                .apply();
+                .commit();
     }
 
     private static void setTokenToDisk(String token){
          BuyBuddyUtil.getSP().edit()
                 .putString(BuyBuddyUtil.TOKEN_KEY, token)
-                .apply();
+                .commit();
     }
 }

@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,6 +29,7 @@ class BuyBuddyEndpoint {
     static final String HitagIncomplete      = "GET /order/uncompleted";
     static final String OrderDetail          = "GET /order/overview/<sale_id>/detail";
     static final String HitagPasswordPayload = "POST /order/delegate/<sale_id>/hitag_release";
+    static final String GetCampaings         = "GET /sales/current_campaign?{hitag_ids}&{basket}";
 
     private static final String sandBoxPrefix = "sandbox-api";
     private static final String productionPrefix = "api";
@@ -79,17 +81,40 @@ class BuyBuddyEndpoint {
                         String pattern = "<" + key + ">";
                         String replacement = parameters.get(key) + "";
 
+                        String queryParemeterPattern = "{" + key + "}";
+
                         if (parsedEndpoint.contains(pattern)){
                             parsedEndpoint = parsedEndpoint.replace(pattern, replacement);
                             placeholders.put(key, parameters.get(key));
                             iter.remove();
+                        }else if (parsedEndpoint.contains(queryParemeterPattern)) {
+
+                            if (parameters.get(key) != null) {
+                                if (parameters.get(key) instanceof int[]) {
+
+                                    int[] objArray = (int[]) parameters.get(key);
+                                    String objArrayReplacement = "";
+                                    for (int i = 0; i < objArray.length; i++) {
+                                        objArrayReplacement += key + "[]=" + objArray[i];
+
+                                        if (i < objArray.length - 1 ){
+                                            objArrayReplacement += "&";
+                                        }
+                                    }
+                                    parsedEndpoint = parsedEndpoint.replace(queryParemeterPattern, objArrayReplacement) + "&";
+
+                                } else {
+
+                                    String objReplecement = key + "=" + parameters.get(key);
+                                    parsedEndpoint = parsedEndpoint.replace(queryParemeterPattern, objReplecement) + "&";
+                                }
+                            }
                         }
                     }
 
                     JSONObject json = new JSONObject(new Gson().toJson(jsonBody));
                     jsonString = json.toString();
 
-                    BuyBuddyUtil.printD("Endpoint", jsonString);
                 }
             }
         }catch (Exception ex) {
@@ -100,10 +125,8 @@ class BuyBuddyEndpoint {
     }
 
     public static String getBaseUrl() {
-        //return "https://" + (BuyBuddy.getInstance().api.isSandBoxMode() ?
-          //      sandBoxPrefix : productionPrefix) + ".buybuddy.co";
-
-        return "http://buybuddy.tecpor.com:4000/api";
+        return "https://" + (BuyBuddy.getInstance().api.isSandBoxMode() ?
+                sandBoxPrefix : productionPrefix) + ".buybuddy.co";
     }
 }
 

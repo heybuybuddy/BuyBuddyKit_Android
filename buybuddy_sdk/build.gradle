@@ -19,7 +19,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
-            testCoverageEnabled = false
+            testCoverageEnabled false
         }
     }
     compileOptions {
@@ -39,7 +39,6 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
     compile files('libs/eventbus-3.0.0.jar')
-    compile project(path: ':bluetoothcompat')
 }
 
 def libraryGroupId = 'co.buybuddy.sdk'

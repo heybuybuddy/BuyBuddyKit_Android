@@ -33,7 +33,6 @@
                 <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
             </intent-filter>
         </receiver>
-
     </application>
 
 </manifest>

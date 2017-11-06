@@ -1,4 +1,4 @@
-package com.forkingcode.bluetoothcompat;
+package co.buybuddy.sdk.ble.blecompat;
 
 import android.location.LocationManager;
 

@@ -1,4 +1,4 @@
-package com.forkingcode.bluetoothcompat;
+package co.buybuddy.sdk.ble.blecompat;
 
 import android.Manifest;
 import android.content.Context;
@@ -33,6 +33,6 @@ public class CheckerLocationPermission {
             throw new IllegalArgumentException("permission is null");
         }
 
-        return context.checkPermission(permission, android.os.Process.myPid(), Process.myUid()) == PackageManager.PERMISSION_GRANTED;
+        return context.checkPermission(permission, Process.myPid(), Process.myUid()) == PackageManager.PERMISSION_GRANTED;
     }
 }
