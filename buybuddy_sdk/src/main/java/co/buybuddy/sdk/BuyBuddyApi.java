@@ -247,6 +247,14 @@ public final class BuyBuddyApi {
                 delegate);
     }
 
+    public void setUserEmail(String email, BuyBuddyApiCallback<BuyBuddyBase> delegate) {
+        call(BuyBuddyBase.class,
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.UserEmailAssignment,
+                        new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())
+                                          .add("email_assignment", new ParameterMap().add("email", email).getMap())),
+                delegate);
+    }
+
     public void completeOrder(long orderId, String hitagId, int status, BuyBuddyApiCallback<BuyBuddyBase> delegate){
         call(BuyBuddyBase.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.HitagCompletion,

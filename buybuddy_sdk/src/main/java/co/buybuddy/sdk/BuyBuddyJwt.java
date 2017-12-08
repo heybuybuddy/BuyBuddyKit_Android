@@ -15,4 +15,8 @@ class BuyBuddyJwt {
     String getJwt(){
         return jwt;
     }
+
+    public int getUserId() {
+        return user_id;
+    }
 }

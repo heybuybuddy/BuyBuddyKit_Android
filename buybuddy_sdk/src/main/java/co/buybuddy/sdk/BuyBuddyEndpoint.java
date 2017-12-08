@@ -30,6 +30,7 @@ class BuyBuddyEndpoint {
     static final String OrderDetail          = "GET /order/overview/<sale_id>/detail";
     static final String HitagPasswordPayload = "POST /order/delegate/<sale_id>/hitag_release";
     static final String GetCampaings         = "GET /sales/current_campaign?{hitag_ids}&{basket}";
+    static final String UserEmailAssignment = "POST /iam/users/<user_id>/email_assignments";
 
     private static final String sandBoxPrefix = "sandbox-api";
     private static final String productionPrefix = "api";

@@ -102,7 +102,7 @@ class BuyBuddyAuthorization implements Interceptor{
 
             if (jwt != null){
                 if (jwt.getData() != null && jwt.getData().getJwt() != null)
-                    tokenManager.setJwt(jwt.getData().getJwt());
+                    tokenManager.setJwt(jwt.getData().getJwt(), jwt.getData().getUserId());
                 return 200;
             }
             return 400;

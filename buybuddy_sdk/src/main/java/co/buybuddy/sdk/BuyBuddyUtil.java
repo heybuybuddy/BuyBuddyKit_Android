@@ -14,6 +14,7 @@ public final class BuyBuddyUtil {
 
     static final String TOKEN_KEY = "token";
     static final String JWT_KEY = "jwt";
+    static final String USER_ID = "user_id";
 
     public static String getFromSP(String key){
 

@@ -31,6 +31,7 @@ import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
 import co.buybuddy.sdk.model.BuyBuddyItem;
+import co.buybuddy.sdk.responses.BuyBuddyBase;
 import co.buybuddy.sdk.responses.OrderDelegate;
 
 import static android.view.View.GONE;
@@ -62,12 +63,12 @@ public class MainActivity extends AppCompatActivity {
         btnRelease.setAlpha(0);
 
         hitagIds = new ArraySet<>();
-        hitagIds.add("FRKN00395");
+        hitagIds.add("SVDA01085");
 
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
                 .setSandBoxMode(true)
-                .setUserToken("vbf3/4RsQkyhFb7LRavWkWKK23r/a0PUo1KX5ldSw+26hPKaNstLiYZuz0zuHKHuB909/Y85RN2wu1jFiR1XEg==");
+                .setUserToken("ez73kR5hQeKOwecOc54PZL/A15NA9UlNntZvviAWp3rQmKSN5PJHarZ1we1iWLQdJxqvbwV2RiCtvFxgvaTvIw==");
 
         btnCreateOrder.setVisibility(GONE);
 
@@ -123,6 +124,18 @@ public class MainActivity extends AppCompatActivity {
                 hitagStatusAdapter.clear();
             }
         });
+
+        /*BuyBuddy.getInstance().api.setUserEmail("frkncku@gmail.com", new BuyBuddyApiCallback<BuyBuddyBase>() {
+            @Override
+            public void success(BuyBuddyApiObject<BuyBuddyBase> response) {
+
+            }
+
+            @Override
+            public void error(BuyBuddyApiError error) {
+
+            }
+        });*/
 
 
         btnRelease.setOnClickListener(new View.OnClickListener() {
@@ -243,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void basketAndCampaingsUpdated() {
 
+                            Object object = BuyBuddy.getInstance().shoppingCart.getCampaigns();
                         }
                     });
                 }

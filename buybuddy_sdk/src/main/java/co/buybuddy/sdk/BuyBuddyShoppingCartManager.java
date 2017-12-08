@@ -99,19 +99,24 @@ public final class BuyBuddyShoppingCartManager {
                                     basket.get(hitagId).setAppliedCampaingIds(campaignItem.getCampaignIds());
                                     basket.get(hitagId).getPrice().setCampaignedPrice(campaignItem.getCampaignPrice());
                                 } else {
+
                                     basket.get(hitagId).setAppliedCampaingIds(null);
                                     basket.get(hitagId).getPrice().unsetCampaigns();
                                 }
                             }
-
-                            if (delegate != null)
-                                delegate.basketAndCampaingsUpdated();
                         }
+
+                        if (delegate != null)
+                            delegate.basketAndCampaingsUpdated();
                     }
 
                     @Override
                     public void error(BuyBuddyApiError error) {
 
+                        campaigns.clear();
+
+                        if (delegate != null)
+                            delegate.basketAndCampaingsUpdated();
                     }
                 }
         );
