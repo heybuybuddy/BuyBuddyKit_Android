@@ -1,11 +1,13 @@
 package co.buybuddy.sdk.model;
 
+import java.io.Serializable;
+
 /**
  * Created by furkan on 10/22/17.
  * Gururla sunar. AHAHAHAHA Some spagetties
  */
 
-public class BuyBuddyCampaignItem {
+public class BuyBuddyCampaignItem implements Serializable {
 
     private int hitag_id;
     private int item_id;

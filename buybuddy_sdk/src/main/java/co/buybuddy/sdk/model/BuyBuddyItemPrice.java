@@ -1,8 +1,9 @@
 package co.buybuddy.sdk.model;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-final public class BuyBuddyItemPrice {
+final public class BuyBuddyItemPrice implements Serializable {
     private float price;
     private float discount_price;
     private float ex_price;
