@@ -59,8 +59,8 @@ public final class BuyBuddyShoppingCartManager {
 
     public boolean addToBasket(@NonNull BuyBuddyItem item, @Nullable final BuyBuddyShoppingCartDelegate delegate){
         if (basket != null) {
-            basket.put(item.getHitagId(),item);
 
+            basket.put(item.getHitagId(),item);
             updateBasket(delegate);
             return true;
         }
@@ -136,6 +136,16 @@ public final class BuyBuddyShoppingCartManager {
         }
 
         BuyBuddy.getInstance().api.createOrder(getHitagIdentifiers(), campaignIdsArray, getTotalPrice(), delegate);
+    }
+
+    public boolean removeAll(){
+
+        if (basket != null){
+            basket.clear();
+            return true;
+        }
+
+        return false;
     }
 
     public boolean containsId(@NonNull String hitagId){

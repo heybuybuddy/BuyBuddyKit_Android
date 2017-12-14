@@ -2,14 +2,16 @@ package co.buybuddy.sdk.model;
 
 import android.support.annotation.Nullable;
 
+import java.io.Serializable;
+
 /**
  * Created by Furkan Ençkü on 6/12/17.
  * This code written by buybuddy Android Team
  */
 
-//TODO Serializable !!
 
-public final class BuyBuddyItem {
+
+public final class BuyBuddyItem implements Serializable {
     private String hitag_id;
     private String name;
     private int h_id;
