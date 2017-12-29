@@ -1,4 +1,4 @@
-package co.buybuddy.sdk.responses;
+package co.buybuddy.sdk.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;

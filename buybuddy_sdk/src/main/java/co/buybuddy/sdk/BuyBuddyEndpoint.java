@@ -34,6 +34,7 @@ class BuyBuddyEndpoint {
     static final String UserAddressDetails   = "GET /utilities/search/user/<user_id>/address";
     static final String CreateUserAddress = "POST /iam/users/<user_id>/address";
     static final String UpdateUserAddress = "PUT /iam/users/<user_id>/address/<id>";
+    static final String DeleteUserAddress = "DELETE /iam/users/<user_id>/address/<address_id>";
 
 
     private static final String sandBoxPrefix = "sandbox-api";

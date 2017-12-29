@@ -13,7 +13,7 @@ import java.util.Map;
 import co.buybuddy.sdk.ble.CollectedHitag;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
-import co.buybuddy.sdk.responses.Address;
+import co.buybuddy.sdk.model.Address;
 import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.model.HitagPasswordPayload;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
@@ -247,28 +247,41 @@ public final class BuyBuddyApi {
 
     public void getUserAddress(BuyBuddyApiCallback<Address> delegate){
 
-        call(BuyBuddyBase.class,
+        call(Address.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.UserAddressDetails,
                         new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())),
                 delegate);
     }
 
-    public void createUserAddress(Address address,BuyBuddyApiCallback<Address> delegate){
+    public void deleteUserAddress(Integer addressId,BuyBuddyApiCallback<BuyBuddyBase> delegate){
+
         call(BuyBuddyBase.class,
-                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.CreateUserAddress,
-                        new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())
-                                          .add("address",new ParameterMap().add("name", address.getTitle())
-                                                                            .add("street", address.getStreet())
-                                                                            .add("region", address.getRegion())
-                                                                            .add("city",address.getCity())
-                                                                            .add("zip",address.getZipcode())
-                                                                            .add("address",address.getDefinition())
-                                                                            .add("country",address.getCountry()).getMap())),
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.DeleteUserAddress,
+                        new ParameterMap().add("user_id",BuyBuddyTokenManager.getCurrent().getUserId())
+                                          .add("address_id",addressId)),
                 delegate);
     }
 
+    public void createUserAddress(Address address,BuyBuddyApiCallback<Address> delegate){
+        if (address.getCity() != null && address.getTitle() != null && address.getStreet() != null && address.getRegion() != null && address.getZipcode() != null && address.getDefinition() != null && address.getCountry() != null) {
+        call(Address.class,
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.CreateUserAddress,
+                        new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())
+                                          .add("address",new ParameterMap().add("name", address.getTitle())
+                                                                           .add("street", address.getStreet())
+                                                                           .add("region", address.getRegion())
+                                                                           .add("city",address.getCity())
+                                                                           .add("zip",address.getZipcode())
+                                                                           .add("address",address.getDefinition())
+                                                                           .add("country",address.getCountry()).getMap())),
+                delegate);
+        }
+    }
+
     public void updateUserAddress(Address address,BuyBuddyApiCallback<Address> delegate){
-        call(BuyBuddyBase.class,
+        if (address.getCity() != null && address.getTitle() != null && address.getStreet() != null && address.getRegion() != null && address.getZipcode() != null && address.getDefinition() != null && address.getCountry() != null) {
+
+            call(Address.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.UpdateUserAddress,
                         new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())
                                           .add("address",new ParameterMap().add("name", address.getTitle())
@@ -279,6 +292,7 @@ public final class BuyBuddyApi {
                                           .add("address",address.getDefinition())
                                           .add("country",address.getCountry()).getMap())),
                 delegate);
+        }
     }
 
     public void setUserEmail(String email, BuyBuddyApiCallback<BuyBuddyBase> delegate) {
