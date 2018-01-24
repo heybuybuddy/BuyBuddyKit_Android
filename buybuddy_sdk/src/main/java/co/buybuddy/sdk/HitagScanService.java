@@ -28,6 +28,8 @@ import co.buybuddy.sdk.ble.blecompat.ScanCallbackCompat;
 import co.buybuddy.sdk.ble.blecompat.ScanResultCompat;
 import co.buybuddy.sdk.ble.blecompat.ScanSettingsCompat;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
+import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.sdk.interfaces.HitagScanServiceCallBack;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
 import co.buybuddy.sdk.responses.BuyBuddyBase;
@@ -46,6 +48,7 @@ final public class HitagScanService extends Service  {
     private int reportCount = 0;
     private BluetoothLeScannerCompat mBleScanner;
     private ScanCallbackCompat scanCallback;
+    private HitagScanServiceCallBack delegate;
 
     private final static String TAG = "HitagScanService";
 
@@ -56,6 +59,11 @@ final public class HitagScanService extends Service  {
     static Map<String, CollectedHitagTS> activeHitags = new HashMap<>();
     static Map<String, CollectedHitagTS> passiveHitags = new HashMap<>();
     static ArrayList<CollectedHitag> collectedHitags = new ArrayList<>();
+
+    public HitagScanService setHitagScanServiceCallback(HitagScanServiceCallBack delegate) {
+        this.delegate = delegate;
+        return this;
+    }
 
     private void initStartBluetoothScan() {
 
@@ -98,6 +106,7 @@ final public class HitagScanService extends Service  {
                                                                        result.getRssi());
 
                     if (hitag != null) {
+                        delegate.didEnterBeaconRegion();
 
                         lastHitagTimeStamp = System.currentTimeMillis();
                         hitag.setLastSeen(lastHitagTimeStamp);
@@ -209,6 +218,10 @@ final public class HitagScanService extends Service  {
                 passiveHitags.put(hitagId, activeHitags.get(hitagId));
                 iter.remove();
             }
+        }
+
+        if (activeHitags.isEmpty()){
+            delegate.didExitBeaconRegion();
         }
 
         reportCount++;
