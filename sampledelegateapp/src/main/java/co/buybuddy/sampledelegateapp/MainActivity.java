@@ -21,6 +21,7 @@ import co.buybuddy.sampledelegateapp.adapter.HitagViewHolder;
 import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.BuyBuddyShoppingCartDelegate;
 import co.buybuddy.sdk.BuyBuddyUtil;
+import co.buybuddy.sdk.HitagScanService;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaserDelegate;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaseManager;
 import co.buybuddy.sdk.ble.HitagState;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     long orderId = -1;
     volatile BigDecimal totalBasket = new BigDecimal("0");
     BuyBuddyHitagReleaseManager manager;
+
 
     Button btnReset, btnCreateOrder, btnRelease;
     Set<String> hitagIds;
@@ -94,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
         hitagStatusAdapter = new HitagReleaseStatusAdapter(this);
         hitagStatusView.setAdapter(hitagStatusAdapter);
         hitagStatusView.setItemAnimator(null);
+
 
         btnCreateOrder.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -240,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getProduct(String hitagId) {
+
         BuyBuddy.getInstance().api.getProductWithHitagId(hitagId, new BuyBuddyApiCallback<BuyBuddyItem>() {
             @Override
             public void success(BuyBuddyApiObject<BuyBuddyItem> response) {

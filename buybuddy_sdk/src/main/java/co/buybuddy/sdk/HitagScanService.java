@@ -49,6 +49,7 @@ final public class HitagScanService extends Service  {
     private BluetoothLeScannerCompat mBleScanner;
     private ScanCallbackCompat scanCallback;
     private HitagScanServiceCallBack delegate;
+    private Boolean regionActive = false;
 
     private final static String TAG = "HitagScanService";
 
@@ -107,6 +108,7 @@ final public class HitagScanService extends Service  {
 
                     if (hitag != null) {
                         delegate.didEnterBeaconRegion();
+                        regionActive = true;
 
                         lastHitagTimeStamp = System.currentTimeMillis();
                         hitag.setLastSeen(lastHitagTimeStamp);
@@ -220,7 +222,8 @@ final public class HitagScanService extends Service  {
             }
         }
 
-        if (activeHitags.isEmpty()){
+        if (activeHitags.isEmpty() && regionActive){
+            regionActive = false;
             delegate.didExitBeaconRegion();
         }
 
