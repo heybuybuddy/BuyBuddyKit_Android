@@ -1,5 +1,10 @@
 package co.buybuddy.sdk;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.support.v4.net.ConnectivityManagerCompat;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -65,11 +70,29 @@ public final class BuyBuddyApi {
         return this;
     }
 
+    private boolean isConnected() {
+
+        ConnectivityManager cm = (ConnectivityManager) BuyBuddy.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        if (activeNetwork != null) {
+            return activeNetwork.isConnectedOrConnecting();
+        }
+
+        return false;
+    }
+
     public boolean isSandBoxMode(){
         return isSandBoxMode;
     }
 
     private <T> void call(final Class<T> clazz, BuyBuddyHttpModel requestModel, final BuyBuddyApiCallback<T> delegate){
+
+        if (!isConnected()) {
+            delegate.error(new BuyBuddyApiError("-1", "Network is not available.", -1));
+
+            return;
+        }
 
         Request.Builder builder = new Request.Builder()
                                  .url(requestModel.getUrl());

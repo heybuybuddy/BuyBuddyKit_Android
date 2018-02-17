@@ -3,9 +3,10 @@
 buildscript {
     repositories {
         jcenter()
+        google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0'
+        classpath 'com.android.tools.build:gradle:3.0.1'
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.5.0"
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -26,6 +27,7 @@ allprojects {
                 password = "5fef63b7311cc55b7554511fe6ff4d6b"
             }
         }
+        google()
     }
 }
 
