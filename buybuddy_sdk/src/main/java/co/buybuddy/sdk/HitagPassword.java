@@ -3,8 +3,8 @@ package co.buybuddy.sdk;
 import java.util.Map;
 
 /**
- * Created by furkan on 6/14/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/14/17.
+ * This code written by buybuddy Android Team
  */
 
 class HitagPassword {

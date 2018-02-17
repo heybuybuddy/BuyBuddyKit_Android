@@ -1,46 +1,154 @@
 package co.buybuddy.sdk;
 
-import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
+import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
+import co.buybuddy.sdk.model.BuyBuddyCampaign;
+import co.buybuddy.sdk.model.BuyBuddyCampaignItem;
 import co.buybuddy.sdk.model.BuyBuddyItem;
+import co.buybuddy.sdk.responses.BuyBuddyApiError;
+import co.buybuddy.sdk.responses.BuyBuddyApiObject;
+import co.buybuddy.sdk.responses.OrderDelegate;
 
-/**
- * Created by Emir on 29/06/2017.
- */
+public final class BuyBuddyShoppingCartManager {
 
-public class BuyBuddyShoppingCartManager {
-
-    private static Map<String, BuyBuddyItem> basket;
-    private Float totPrice = 0.0f;
+    private Map<String, BuyBuddyItem> basket;
+    private Map<Integer, BuyBuddyCampaign> campaigns;
+    private Map<Integer, BuyBuddyCampaignItem> campaignItems;
 
     public ArrayList<BuyBuddyItem> getItems() {
         if (basket != null) {
-            return (ArrayList<BuyBuddyItem>) basket.values();
+            return new ArrayList<>(basket.values());
         }
 
         return new ArrayList<>();
     }
 
-    BuyBuddyShoppingCartManager() {
-        basket = new HashMap<>();
+    public Map<Integer, BuyBuddyCampaign> getCampaigns() {
+        return campaigns;
     }
 
-    public boolean addToBasket(BuyBuddyItem item){
-        if (basket != null) {
-            if(HitagScanService.validateActiveHitag(item.getHitagId()))
-            basket.put(item.getHitagId(),item);
+    public int[] getHitagIdentifiers() {
+        int[] hitagIds = new int[basket.size()];
 
+        int index = 0;
+
+        for (String compiledIdentifier : basket.keySet()) {
+            hitagIds[index] = basket.get(compiledIdentifier).getHitagIdInt();
+            index++;
+        }
+
+        return hitagIds;
+    }
+
+    BuyBuddyShoppingCartManager() {
+        basket = new HashMap<>();
+        campaigns = new HashMap<>();
+        campaignItems = new HashMap<>();
+    }
+
+    public boolean addToBasket(@NonNull BuyBuddyItem item, @Nullable final BuyBuddyShoppingCartDelegate delegate){
+        if (basket != null) {
+
+            basket.put(item.getHitagId(),item);
+            updateBasket(delegate);
             return true;
         }
         return false;
     }
 
-    public boolean containsId(String hitagId){
+    private void updateBasket(final BuyBuddyShoppingCartDelegate delegate) {
+
+        BuyBuddy.getInstance().api.getCampaigns(
+                getHitagIdentifiers(), new BuyBuddyApiCallback<BuyBuddyBasketCampaign>() {
+                    @Override
+                    public void success(BuyBuddyApiObject<BuyBuddyBasketCampaign> response) {
+
+                        campaigns.clear();
+
+                        if (response.getData() != null) {
+
+                            if (response.getData().getCampaigns() != null)
+                                for (BuyBuddyCampaign campaign : response.getData().getCampaigns()) {
+                                    campaigns.put(campaign.getId(), campaign);
+                                }
+
+                            if (response.getData().getCampaignItems() != null)
+                                for (BuyBuddyCampaignItem item : response.getData().getCampaignItems()) {
+                                    campaignItems.put(item.getHitagId(), item);
+                                }
+
+
+                            for (String hitagId : basket.keySet()) {
+
+                                BuyBuddyItem item = basket.get(hitagId);
+
+                                if (campaignItems.get(item.getHitagIdInt()) != null) {
+
+                                    BuyBuddyCampaignItem campaignItem = campaignItems.get(item.getHitagIdInt());
+                                    basket.get(hitagId).setAppliedCampaingIds(campaignItem.getCampaignIds());
+                                    basket.get(hitagId).getPrice().setCampaignedPrice(campaignItem.getCampaignPrice());
+                                } else {
+
+                                    basket.get(hitagId).setAppliedCampaingIds(null);
+                                    basket.get(hitagId).getPrice().unsetCampaigns();
+                                }
+                            }
+                        }
+
+                        if (delegate != null)
+                            delegate.basketAndCampaingsUpdated();
+                    }
+
+                    @Override
+                    public void error(BuyBuddyApiError error) {
+
+                        campaigns.clear();
+
+                        if (delegate != null)
+                            delegate.basketAndCampaingsUpdated();
+                    }
+                }
+        );
+    }
+
+    public void createOrder(BuyBuddyApiCallback<OrderDelegate> delegate) {
+
+        List<Integer> campaignIds = new ArrayList<>();
+        int[] campaignIdsArray = new int[campaigns.size()];
+
+        for (BuyBuddyCampaign campaign : campaigns.values()) {
+            campaignIds.add(campaign.getId());
+        }
+
+        for (int i = 0; i < campaignIds.size(); i++) {
+            campaignIdsArray[i] = campaignIds.get(i);
+        }
+
+        BuyBuddy.getInstance().api.createOrder(getHitagIdentifiers(), campaignIdsArray, getTotalPrice(), delegate);
+    }
+
+    public boolean removeAll(){
+
+        if (basket != null){
+            basket.clear();
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean containsId(@NonNull String hitagId){
         if (basket != null) {
             if(basket.containsKey(hitagId))
             return true;
@@ -48,10 +156,12 @@ public class BuyBuddyShoppingCartManager {
         return false;
     }
 
-    public boolean removeFromBasket(String hitagId) {
+    public boolean removeFromBasket(@NonNull final String hitagId, @Nullable  BuyBuddyShoppingCartDelegate delegate) {
         if (basket != null) {
             if (basket.get(hitagId) != null) {
                 basket.remove(hitagId);
+
+                updateBasket(delegate);
                 return true;
             }
         }
@@ -59,19 +169,36 @@ public class BuyBuddyShoppingCartManager {
         return false;
     }
 
-    public Float totalPrice(){
-       basket.values();
+    public boolean removeFromBasket(@NonNull BuyBuddyItem item, @Nullable BuyBuddyShoppingCartDelegate delegate) {
+        if (basket != null) {
+            if (basket.get(item.getHitagId()) != null) {
+                basket.remove(item.getHitagId());
 
-        Iterator<BuyBuddyItem> iter = BuyBuddyShoppingCartManager.basket.values().iterator();
+                updateBasket(delegate);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private float getTotalPrice(){
+
+        BigDecimal totalPrice = new BigDecimal("0");
+
+        Iterator<BuyBuddyItem> iter = basket.values().iterator();
 
         while (iter.hasNext()) {
-            BuyBuddyItem product = iter.next();
 
-                totPrice += product.getPrice().getCurrentPrice();
+            BuyBuddyItem item = iter.next();
+
+            BigDecimal price = new BigDecimal(item.getPrice().isCampaignApplied() ?item.getPrice().getCampaignedPrice() : item.getPrice().getCurrentPrice());
+
+            totalPrice = totalPrice.add(price, MathContext.DECIMAL64);
 
         }
 
-        return  totPrice;
+        return  totalPrice.floatValue();
     }
 
 }

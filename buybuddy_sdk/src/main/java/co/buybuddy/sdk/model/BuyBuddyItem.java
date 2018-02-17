@@ -1,11 +1,17 @@
 package co.buybuddy.sdk.model;
 
+import android.support.annotation.Nullable;
+
+import java.io.Serializable;
+
 /**
- * Created by furkan on 6/12/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/12/17.
+ * This code written by buybuddy Android Team
  */
 
-public final class BuyBuddyItem {
+
+
+public final class BuyBuddyItem implements Serializable {
     private String hitag_id;
     private String name;
     private int h_id;
@@ -14,6 +20,16 @@ public final class BuyBuddyItem {
     private String image;
     private String description;
     private BuyBuddyItemPrice price;
+    private int[] appliedCampaingIds;
+
+    @Nullable public int[] getAppliedCampaingIds() {
+        return appliedCampaingIds;
+    }
+
+    public BuyBuddyItem setAppliedCampaingIds(int[] appliedCampaingIds) {
+        this.appliedCampaingIds = appliedCampaingIds;
+        return this;
+    }
 
     public String getHitagId() {
         return hitag_id;

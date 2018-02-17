@@ -1,16 +1,16 @@
-package co.buybuddy.sdk;
+package co.buybuddy.sdk.ble;
 
+import android.bluetooth.BluetoothDevice;
 import android.support.annotation.Nullable;
-
-import com.polidea.rxandroidble.RxBleDevice;
+import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by furkan on 6/14/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/14/17.
+ * This code written by buybuddy Android Team
  */
 
 public final class CollectedHitagTS extends CollectedHitag {
@@ -20,28 +20,37 @@ public final class CollectedHitagTS extends CollectedHitag {
         return lastSeen;
     }
 
+    private boolean isBeacon = false;
+
+    public boolean isBeacon() {
+        return isBeacon;
+    }
+
+    private BluetoothDevice device;
+
+    public BluetoothDevice getDevice() {
+        return device;
+    }
+
     public void setLastSeen(long lastSeen) {
         this.lastSeen = lastSeen;
     }
 
     private static final int MANUFACTURER_DATA = -1;
     private static final int TX_POWER = 10;
-    private RxBleDevice device;
 
-    CollectedHitag getWithoutTS(){
+    public CollectedHitag getWithoutTS(){
         return new CollectedHitag(this.getRssi())
                 .setBattery(getBattery())
                 .setId(getId())
-                .setTxPower(getTxPower())
-                .setValidationCode(getValidationCode());
+                .setVibration(isVibrating())
+                .setRssi(getRssi())
+                .setPinState(getPinState())
+                .setTxPower(getTxPower());
     }
 
-    CollectedHitagTS(int rssi) {
+    private CollectedHitagTS(int rssi) {
         super(rssi);
-    }
-
-    public RxBleDevice getDevice() {
-        return device;
     }
 
     @Override
@@ -61,26 +70,31 @@ public final class CollectedHitagTS extends CollectedHitag {
         return this;
     }
 
-    public CollectedHitagTS setDevice(RxBleDevice device) {
+    public CollectedHitagTS setDevice(BluetoothDevice device) {
         this.device = device;
         return this;
     }
 
     @Override
-    public CollectedHitagTS setValidationCode(int validationCode) {
-        super.setValidationCode(validationCode);
+    public CollectedHitagTS setVibration(boolean didVibrate) {
+        super.setVibration(didVibrate);
+        return this;
+    }
+
+    @Override
+    public CollectedHitagTS setPinState(int pinState) {
+        super.setPinState(pinState);
         return this;
     }
 
     @Nullable
-    public static CollectedHitagTS getHitag(RxBleDevice device, byte scanRecord[], int rssi) {
+    public static CollectedHitagTS getHitag(BluetoothDevice device, byte scanRecord[], int rssi) {
 
         if (scanRecord == null)
             return null;
 
         String manufacturerData, deviceID;
         CollectedHitagTS hitag;
-
 
         Map<Integer, String> recordMap = parseRecord(scanRecord);
         if (recordMap != null)
@@ -94,7 +108,7 @@ public final class CollectedHitagTS extends CollectedHitag {
                         if (manufacturerData != null) {
                             if (manufacturerData.length() == 50) {
                                 String devicePostfix = manufacturerData.substring(2, 10);
-                                String devicePrefix = manufacturerData.substring(41, 43);
+                                String devicePrefix = "01";
                                 String reOrderedPostfix = "";
 
                                 for (int i = 8; i >= 2; i -= 2) {
@@ -102,6 +116,7 @@ public final class CollectedHitagTS extends CollectedHitag {
                                 }
 
                                 deviceID = devicePrefix + reOrderedPostfix;
+                                deviceID = deviceID.toUpperCase();
                             }
                         }
 
@@ -109,6 +124,8 @@ public final class CollectedHitagTS extends CollectedHitag {
                             hitag =  new CollectedHitagTS(rssi)
                                             .setDevice(device)
                                             .setId(deviceID);
+
+                            hitag.isBeacon = true;
 
                             return hitag;
                         }
@@ -121,37 +138,55 @@ public final class CollectedHitagTS extends CollectedHitag {
                         int txPower =  recordMap.get(TX_POWER)
                                                 != null ? (256 - Integer.parseInt(recordMap.get(TX_POWER), 16)) : -90; //TX POWER NORMAL VALUE -91
                         int battery = 0;
-                        int validationCode = 0;
+                        boolean isFastAdvertising = false;
+                        int pinStatus = 5;
 
                         deviceID = null;
 
-                        if (manufacturerData != null) { // 02442C5A540507000000010059
+                        if (manufacturerData != null) {
                             if (manufacturerData.length() == 26) {
                                 String devicePostfix = manufacturerData.substring(12, 20);
-                                String devicePrefix = manufacturerData.substring(20, 22);
-                                String validation = manufacturerData.substring(10, 12) + manufacturerData.substring(8, 10);
-                                validationCode = Integer.parseInt(validation, 16);
+                                String devicePrefix = "01";
+
                                 String reOrderedPostfix = "";
 
                                 for (int i = 8; i >= 2; i -= 2) {
                                     reOrderedPostfix += devicePostfix.substring(i-2, i);
                                 }
 
+                                try {
+                                    pinStatus = Integer.parseInt(manufacturerData.substring(0,2), 16);
+                                    battery = Integer.parseInt(manufacturerData.substring(6, 8), 16);
+                                } catch(NumberFormatException ex ){
+                                    ex.printStackTrace();
+                                }
+
+                                String vibrationString = manufacturerData.substring(2,4);
+
+                                if (vibrationString.equals("EE") || vibrationString.equals("ee")) {
+                                    isFastAdvertising = true;
+                                } else {
+                                    isFastAdvertising = false;
+                                }
+
                                 deviceID = devicePrefix + reOrderedPostfix;
+                                deviceID = deviceID.toUpperCase();
                             }
                         }
 
                         if (deviceID != null) {
                             hitag = new CollectedHitagTS(rssi)
                                             .setDevice(device)
-                                            .setValidationCode(validationCode)
                                             .setId(deviceID)
                                             .setTxPower(txPower)
+                                            .setVibration(isFastAdvertising)
+                                            .setPinState(pinStatus)
                                             .setBattery(battery);
+
+                            hitag.isBeacon = false;
 
                             return hitag;
                         }
-
 
                         break;
                 }
@@ -166,7 +201,7 @@ public final class CollectedHitagTS extends CollectedHitag {
         return this;
     }
 
-    static public Map<Integer,String> parseRecord(byte[] scanRecord){
+    static private Map<Integer,String> parseRecord(byte[] scanRecord){
         Map <Integer,String> ret = new HashMap<>();
         int index = 0;
         while (index < scanRecord.length) {

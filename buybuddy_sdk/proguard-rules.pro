@@ -50,3 +50,21 @@
 # Retrolambda #
 -dontwarn java.lang.invoke.*
 # Retrolambda
+
+-keepattributes *Annotation*
+-keepattributes Annotation
+
+-keepclassmembers class ** {
+    @org.greenrobot.eventbus.Subscribe <methods>;
+}
+
+-keepclassmembers class ** {
+    @org.greenrobot.eventbus.Subscribe public *;
+}
+
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
+
+# Only required if you use AsyncExecutor
+-keepclassmembers class * extends org.greenrobot.eventbus.util.ThrowableFailureEvent {
+    <init>(java.lang.Throwable);
+}

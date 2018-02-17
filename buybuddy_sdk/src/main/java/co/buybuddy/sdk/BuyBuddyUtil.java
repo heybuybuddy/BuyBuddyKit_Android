@@ -5,8 +5,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 /**
- * Created by furkan on 6/12/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/12/17.
+ * This code written by buybuddy Android Team
  */
 
 public final class BuyBuddyUtil {
@@ -14,6 +14,7 @@ public final class BuyBuddyUtil {
 
     static final String TOKEN_KEY = "token";
     static final String JWT_KEY = "jwt";
+    static final String USER_ID = "user_id";
 
     public static String getFromSP(String key){
 
@@ -21,33 +22,30 @@ public final class BuyBuddyUtil {
     }
 
     static SharedPreferences getSP(){
-        return BuyBuddy.getInstance().getContext()
+        return BuyBuddy.getContext()
                 .getSharedPreferences(BUYBUDDY_SP_PREFIX, Context.MODE_PRIVATE);
     }
 
-    public static final long HITAG_MANAGER_ALARM_INTERVAL = 60000;
+    static final long HITAG_MANAGER_ALARM_INTERVAL = 60000;
     public static final long HITAG_BLE_SCAN_INTERVAL = 800;
     private static boolean DEBUG = true;
 
 
-     static void printD(String tag, String message){
-        if (DEBUG){
-            if (tag.length() > 10){
-                tag = tag.substring(0, 10);
+     public static void printD(String tag, String message){
+        if (DEBUG && message != null && tag != null){
+            if (tag.length() > 13){
+                tag = tag.substring(0, 13);
             }
-            Log.d("*bbddysdk* " + tag, message);
+            Log.d("*bbsdk* " + tag, message);
         }
     }
 
     public static String isValidPatternForHitag(String hitagId){
 
-        String regexStr = "([0-9A-Fa-f]{2})[-]([0-9A-Fa-f]{4})[-]([0-9A-Fa-f]{4})";
+        String regexStr = "([A-Za-z]{4})([0-9]{5})";
 
         if(hitagId.matches(regexStr)){
-
-            String replaceHitagId = hitagId.replace("-","");
-
-            return replaceHitagId;
+            return hitagId.replace("-","");
         }
 
         return null;
@@ -57,7 +55,7 @@ public final class BuyBuddyUtil {
         DEBUG = debug;
     }
 
-    static String w(Object obj){ // Write if object is not null
+    public static String w(Object obj){ // Write if object is not null
         return obj != null ? obj.toString() : "__NULL__";
     }
 }

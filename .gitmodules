@@ -1,0 +1,3 @@
+[submodule "libraries/bluetoothcompat"]
+	path = libraries/bluetoothcompat
+	url = https://github.com/encku/BluetoothCompat.git

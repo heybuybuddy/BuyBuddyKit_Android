@@ -1,8 +1,8 @@
 package co.buybuddy.sdk.responses;
 
 /**
- * Created by furkan on 6/13/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/13/17.
+ * This code written by buybuddy Android Team
  */
 
 public class BuyBuddyBase {
@@ -16,6 +16,11 @@ public class BuyBuddyBase {
 
     public BuyBuddyBase setStatusCode(int statusCode) {
         this.statusCode = statusCode;
+        return this;
+    }
+
+    public BuyBuddyBase setErrors(BuyBuddyApiError errors) {
+        this.errors = errors;
         return this;
     }
 

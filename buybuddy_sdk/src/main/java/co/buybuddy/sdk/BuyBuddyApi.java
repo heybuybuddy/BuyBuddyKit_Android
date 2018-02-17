@@ -10,8 +10,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Map;
 
+import co.buybuddy.sdk.ble.CollectedHitag;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.sdk.model.Address;
+import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
+import co.buybuddy.sdk.model.HitagPasswordPayload;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
 import co.buybuddy.sdk.responses.BuyBuddyBase;
@@ -28,8 +32,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * Created by furkan on 6/13/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/13/17.
+ * This code written by buybuddy Android Team
  */
 
 public final class BuyBuddyApi {
@@ -109,6 +113,9 @@ public final class BuyBuddyApi {
                         if (responseObject != null) {
                             responseObject.setStatusCode(response.code());
                         }
+
+                        BuyBuddyUtil.printD("Api", responseStr);
+
                         if(delegate != null)
                             delegate.success(responseObject);
                     } catch (JsonSyntaxException ex) {
@@ -120,6 +127,9 @@ public final class BuyBuddyApi {
 
                     try{
                         BuyBuddyBase base = new Gson().fromJson(responseStr, BuyBuddyBase.class);
+
+                        BuyBuddyUtil.printD("Api", responseStr);
+
                         if (base != null) {
                             base.setStatusCode(response.code());
                             if(delegate != null)
@@ -150,13 +160,15 @@ public final class BuyBuddyApi {
                 break;
         }
 
-        Response response = new OkHttpClient().newCall(builder.build()).execute();
+        OkHttpClient client = new OkHttpClient.Builder().build();
+
+        Response response = client.newCall(builder.build()).execute();
         String responseStr = null;
 
         if (response.body() != null){
             responseStr = response.body().string();
         }else {
-            throw new BuyBuddyApiError("-0002", "Response Body Null", response.code());
+            throw new BuyBuddyApiError("-0002", "HitagState Body Null", response.code());
         }
 
         if (response.isSuccessful()){
@@ -198,6 +210,16 @@ public final class BuyBuddyApi {
         };
     }
 
+    public void getHitagPassword(String hitagId, long saleId, int version, BuyBuddyApiCallback<HitagPasswordPayload> delegate) {
+        call(HitagPasswordPayload.class,
+             BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.HitagPasswordPayload,
+                        new ParameterMap().add("sale_id", saleId)
+                                          .add("hitag_release_params", new ParameterMap().add("hitags", new ParameterMap().add(hitagId, version)
+                                                                                                                          .getMap())
+                                                                                         .getMap())),
+             delegate);
+    }
+
     void getJwt(BuyBuddyApiCallback<BuyBuddyJwt> delegate) {
         call(BuyBuddyJwt.class,
              BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.Jwt, null),
@@ -223,7 +245,65 @@ public final class BuyBuddyApi {
                 delegate);
     }
 
-    void completeOrder(long orderId, String hitagId, int status, BuyBuddyApiCallback<BuyBuddyBase> delegate){
+    public void getUserAddress(BuyBuddyApiCallback<Address> delegate){
+
+        call(Address.class,
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.UserAddressDetails,
+                        new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())),
+                delegate);
+    }
+
+    public void deleteUserAddress(Integer addressId,BuyBuddyApiCallback<BuyBuddyBase> delegate){
+
+        call(BuyBuddyBase.class,
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.DeleteUserAddress,
+                        new ParameterMap().add("user_id",BuyBuddyTokenManager.getCurrent().getUserId())
+                                          .add("address_id",addressId)),
+                delegate);
+    }
+
+    public void createUserAddress(Address address,BuyBuddyApiCallback<Address> delegate){
+        if (address.getCity() != null && address.getTitle() != null && address.getStreet() != null && address.getRegion() != null && address.getZipcode() != null && address.getDefinition() != null && address.getCountry() != null) {
+        call(Address.class,
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.CreateUserAddress,
+                        new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())
+                                          .add("address",new ParameterMap().add("name", address.getTitle())
+                                                                           .add("street", address.getStreet())
+                                                                           .add("region", address.getRegion())
+                                                                           .add("city",address.getCity())
+                                                                           .add("zip",address.getZipcode())
+                                                                           .add("address",address.getDefinition())
+                                                                           .add("country",address.getCountry()).getMap())),
+                delegate);
+        }
+    }
+
+    public void updateUserAddress(Address address,BuyBuddyApiCallback<Address> delegate){
+        if (address.getCity() != null && address.getTitle() != null && address.getStreet() != null && address.getRegion() != null && address.getZipcode() != null && address.getDefinition() != null && address.getCountry() != null) {
+
+            call(Address.class,
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.UpdateUserAddress,
+                        new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())
+                                          .add("address",new ParameterMap().add("name", address.getTitle())
+                                          .add("street", address.getStreet())
+                                          .add("region", address.getRegion())
+                                          .add("city",address.getCity())
+                                          .add("zip",address.getZipcode())
+                                          .add("address",address.getDefinition())
+                                          .add("country",address.getCountry()).getMap())),
+                delegate);
+        }
+    }
+
+    public void setUserEmail(String email, BuyBuddyApiCallback<BuyBuddyBase> delegate) {
+        call(BuyBuddyBase.class,
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.UserEmailAssignment,
+                        new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())
+                                          .add("email_assignment", new ParameterMap().add("email", email).getMap())),
+                delegate);
+    }
+
+    public void completeOrder(long orderId, String hitagId, int status, BuyBuddyApiCallback<BuyBuddyBase> delegate){
         call(BuyBuddyBase.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.HitagCompletion,
                         new ParameterMap().add("sale_id", orderId)
@@ -246,13 +326,23 @@ public final class BuyBuddyApi {
                 delegate);
     }
 
-    public void createOrder(int[] hitagIds, float sub_total, BuyBuddyApiCallback<OrderDelegate> delegate){
+    void createOrder(int[] hitagIds, int[] campaingIds,float sub_total, BuyBuddyApiCallback<OrderDelegate> delegate){
 
         call(OrderDelegate.class,
              BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.OrderDelegate, new ParameterMap().add("order_delegate", new ParameterMap()
+                                                                                                            .add("campaigns", campaingIds)
                                                                                                             .add("hitags", hitagIds)
                                                                                                             .add("sub_total", sub_total).getMap())),
              delegate);
+    }
+
+    void getCampaigns(int[] hitagIds, BuyBuddyApiCallback<BuyBuddyBasketCampaign> delegate) {
+
+        BuyBuddyHttpModel model =
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.GetCampaings, new ParameterMap().add("hitag_ids", hitagIds).add("basket", false));
+
+        call(BuyBuddyBasketCampaign.class, model, delegate);
+
     }
 
     BuyBuddyApiObject<BuyBuddyJwt> getJwt(String token) throws BuyBuddyApiError, IOException {

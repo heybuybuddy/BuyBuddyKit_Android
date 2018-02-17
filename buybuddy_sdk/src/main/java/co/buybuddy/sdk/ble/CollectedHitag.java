@@ -1,14 +1,17 @@
-package co.buybuddy.sdk;
+package co.buybuddy.sdk.ble;
 
-class CollectedHitag {
+import co.buybuddy.sdk.BuyBuddyUtil;
+
+public class CollectedHitag {
     private String id; // 0100000001
     private int rssi;
     private int txPower;
-    private int validationCode = -1;
     private int battery;
+    private boolean didVibrate = false;
+    private int pinState = 5;
 
     public String getId() {
-        return id;
+        return id.toUpperCase();
     }
 
     public CollectedHitag setId(String id) {
@@ -20,20 +23,24 @@ class CollectedHitag {
         return rssi;
     }
 
-    public int getTxPower() {
+    int getTxPower() {
         return txPower;
     }
 
-    public int getValidationCode() {
-        return validationCode;
-    }
-
-    public int getBattery() {
+    int getBattery() {
         return battery;
     }
 
     CollectedHitag(int rssi){
         this.rssi = rssi;
+    }
+
+    public int getPinState() {
+        return pinState;
+    }
+
+    public boolean isVibrating() {
+        return didVibrate;
     }
 
     public CollectedHitag setBattery(int battery) {
@@ -51,8 +58,13 @@ class CollectedHitag {
         return this;
     }
 
-    public CollectedHitag setValidationCode(int validationCode) {
-        this.validationCode = validationCode;
+    public CollectedHitag setVibration(boolean didVibrate) {
+        this.didVibrate = didVibrate;
+        return this;
+    }
+
+    public CollectedHitag setPinState(int pinState) {
+        this.pinState = pinState;
         return this;
     }
 
@@ -61,7 +73,6 @@ class CollectedHitag {
         return "HitagId   : " + BuyBuddyUtil.w(id)      + "\n"  +
                "Rssi : "      + BuyBuddyUtil.w(rssi)    + "\n"  +
                "TxPower : "   + BuyBuddyUtil.w(txPower) + "\n"  +
-               "Battery : "   + BuyBuddyUtil.w(battery) + "\n"  +
-               "ValidCode : " + BuyBuddyUtil.w(validationCode);
+               "Battery : "   + BuyBuddyUtil.w(battery);
     }
 }

@@ -1,6 +1,8 @@
 package co.buybuddy.sdk.model;
 
-final public class BuyBuddyItemData {
+import java.io.Serializable;
+
+final public class BuyBuddyItemData implements Serializable {
     private String color;
     private String size;
     private int code;

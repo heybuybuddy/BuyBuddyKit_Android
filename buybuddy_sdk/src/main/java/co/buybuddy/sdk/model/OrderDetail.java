@@ -1,11 +1,13 @@
 package co.buybuddy.sdk.model;
 
+import java.io.Serializable;
+
 /**
- * Created by furkan on 6/14/17.
- * Gururla sunar. AHAHAHAHA Some spagetties
+ * Created by Furkan Ençkü on 6/14/17.
+ * This code written by buybuddy Android Team
  */
 
-public final class OrderDetail {
+public final class OrderDetail implements Serializable {
     private long sale_id;
     private float total_price;
     private float total_discount_price;
