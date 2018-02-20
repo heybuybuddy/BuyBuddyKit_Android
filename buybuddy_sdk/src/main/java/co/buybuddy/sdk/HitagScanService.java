@@ -39,7 +39,6 @@ import co.buybuddy.sdk.responses.BuyBuddyBase;
  * This code written by buybuddy Android Team
  */
 
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 final public class HitagScanService extends Service  {
 
     private static Handler mBetweenHandler, mHitagReportHandler, mHandler;
@@ -110,6 +109,10 @@ final public class HitagScanService extends Service  {
                         delegate.didEnterBeaconRegion();
                         regionActive = true;
 
+                        BuyBuddy.getInstance()
+                                .getStoreInfoProvider()
+                                .getLocation(hitag.getId());
+
                         lastHitagTimeStamp = System.currentTimeMillis();
                         hitag.setLastSeen(lastHitagTimeStamp);
                         hitag.setDevice(result.getDevice());
@@ -164,7 +167,9 @@ final public class HitagScanService extends Service  {
 
     private void startScanning() {
         ScanSettingsCompat.Builder scanSettingsBuilder = new ScanSettingsCompat.Builder();
-        scanSettingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            scanSettingsBuilder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+        }
         scanSettingsBuilder.setReportDelay(0);
 
         mBleScanner.startScan(mBluetoothAdapter, null, scanSettingsBuilder.build(), scanCallback);

@@ -4,6 +4,8 @@ import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 
+import co.buybuddy.sdk.location.BuyBuddyStore;
+
 /**
  * Created by Furkan Ençkü on 6/12/17.
  * This code written by buybuddy Android Team
@@ -21,6 +23,11 @@ public final class BuyBuddyItem implements Serializable {
     private String description;
     private BuyBuddyItemPrice price;
     private int[] appliedCampaingIds;
+    private BuyBuddyStore store;
+
+    public BuyBuddyStore getStore() {
+        return store;
+    }
 
     @Nullable public int[] getAppliedCampaingIds() {
         return appliedCampaingIds;

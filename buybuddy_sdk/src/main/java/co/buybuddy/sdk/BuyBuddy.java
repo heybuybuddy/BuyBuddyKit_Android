@@ -2,7 +2,6 @@ package co.buybuddy.sdk;
 
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
 
@@ -24,6 +23,11 @@ public class BuyBuddy {
     public final BuyBuddyApi api;
     public final BuyBuddyShoppingCartManager shoppingCart;
     private LocationServicesStatus locationServicesStatus;
+    private final BuyBuddyStoreInfoProvider storeInfoProvider;
+
+    public BuyBuddyStoreInfoProvider getStoreInfoProvider() {
+        return storeInfoProvider;
+    }
 
     private BuyBuddy(){
         api = new BuyBuddyApi();
@@ -31,6 +35,8 @@ public class BuyBuddy {
 
         locationServicesStatus = new LocationServicesStatus( new CheckerLocationProvider( (LocationManager) getContext().getSystemService(Context.LOCATION_SERVICE)),
                                                              new CheckerLocationPermission(getContext()), android.os.Build.VERSION.SDK_INT, getContext().getApplicationInfo().targetSdkVersion, false);
+
+        storeInfoProvider = new BuyBuddyStoreInfoProvider();
     }
 
     public LocationServicesStatus getLocationServicesStatus() {

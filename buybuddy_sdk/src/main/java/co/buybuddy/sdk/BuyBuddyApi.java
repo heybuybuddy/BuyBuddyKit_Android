@@ -18,6 +18,7 @@ import java.util.Map;
 import co.buybuddy.sdk.ble.CollectedHitag;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.sdk.location.BuyBuddyStore;
 import co.buybuddy.sdk.model.Address;
 import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.model.HitagPasswordPayload;
@@ -266,6 +267,13 @@ public final class BuyBuddyApi {
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.OrderDetail,
                         new ParameterMap().add("sale_id", orderId)),
                 delegate);
+    }
+
+    public void getStoreInfo(String compiledIdentifier, BuyBuddyApiCallback<BuyBuddyStore> delegate) {
+        call(BuyBuddyStore.class,
+             BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.GetStoreInfo,
+                                              new ParameterMap().add("hitag_id", compiledIdentifier)),
+                                              delegate);
     }
 
     public void getUserAddress(BuyBuddyApiCallback<Address> delegate){

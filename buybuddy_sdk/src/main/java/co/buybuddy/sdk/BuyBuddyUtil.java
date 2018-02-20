@@ -21,7 +21,7 @@ public final class BuyBuddyUtil {
         return "";
     }
 
-    static SharedPreferences getSP(){
+    public static SharedPreferences getSP(){
         return BuyBuddy.getContext()
                 .getSharedPreferences(BUYBUDDY_SP_PREFIX, Context.MODE_PRIVATE);
     }

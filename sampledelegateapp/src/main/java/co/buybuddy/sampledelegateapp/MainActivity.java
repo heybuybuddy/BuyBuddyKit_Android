@@ -28,6 +28,8 @@ import co.buybuddy.sdk.ble.HitagState;
 import co.buybuddy.sdk.ble.blecompat.BluetoothLeCompatException;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
+import co.buybuddy.sdk.location.BuyBuddyStore;
+import co.buybuddy.sdk.location.BuyBuddyStoreInfoDelegate;
 import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
@@ -97,6 +99,22 @@ public class MainActivity extends AppCompatActivity {
         hitagStatusView.setAdapter(hitagStatusAdapter);
         hitagStatusView.setItemAnimator(null);
 
+        BuyBuddy.getInstance().getStoreInfoProvider().setDelegate(new BuyBuddyStoreInfoDelegate() {
+            @Override
+            public void enterRegion(BuyBuddyStore store) {
+
+            }
+
+            @Override
+            public void activeRegion(BuyBuddyStore store) {
+
+            }
+
+            @Override
+            public void exitRegion(BuyBuddyStore store) {
+
+            }
+        });
 
         btnCreateOrder.setOnClickListener(new View.OnClickListener() {
             @Override
