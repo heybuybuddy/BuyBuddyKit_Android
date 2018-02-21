@@ -357,13 +357,16 @@ public final class BuyBuddyApi {
                 delegate);
     }
 
-    void createOrder(int[] hitagIds, int[] campaingIds,float sub_total, BuyBuddyApiCallback<OrderDelegate> delegate){
+    void createOrder(int[] hitagIds, int[] campaingIds,float sub_total,Address address,String email,String governmentId,BuyBuddyApiCallback<OrderDelegate> delegate){
 
         call(OrderDelegate.class,
              BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.OrderDelegate, new ParameterMap().add("order_delegate", new ParameterMap()
                                                                                                             .add("campaigns", campaingIds)
                                                                                                             .add("hitags", hitagIds)
-                                                                                                            .add("sub_total", sub_total).getMap())),
+                                                                                                            .add("sub_total", sub_total)
+                                                                                                            .add("address",address)
+                                                                                                            .add("email",email)
+                                                                                                            .add("gId",governmentId).getMap())),
              delegate);
     }
 

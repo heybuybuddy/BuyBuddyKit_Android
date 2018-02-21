@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
+import co.buybuddy.sdk.model.Address;
 import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.model.BuyBuddyCampaign;
 import co.buybuddy.sdk.model.BuyBuddyCampaignItem;
@@ -122,7 +123,7 @@ public final class BuyBuddyShoppingCartManager {
         );
     }
 
-    public void createOrder(BuyBuddyApiCallback<OrderDelegate> delegate) {
+    public void createOrder(Address address, String email, String governmentId, BuyBuddyApiCallback<OrderDelegate> delegate) {
 
         List<Integer> campaignIds = new ArrayList<>();
         int[] campaignIdsArray = new int[campaigns.size()];
@@ -135,7 +136,7 @@ public final class BuyBuddyShoppingCartManager {
             campaignIdsArray[i] = campaignIds.get(i);
         }
 
-        BuyBuddy.getInstance().api.createOrder(getHitagIdentifiers(), campaignIdsArray, getTotalPrice(), delegate);
+        BuyBuddy.getInstance().api.createOrder(getHitagIdentifiers(), campaignIdsArray, getTotalPrice(), address, email, governmentId, delegate);
     }
 
     public boolean removeAll(){
