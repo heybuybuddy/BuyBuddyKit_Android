@@ -3,6 +3,8 @@ package co.buybuddy.sdk.model;
 import android.support.annotation.Nullable;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import co.buybuddy.sdk.location.BuyBuddyStore;
 
@@ -19,19 +21,14 @@ public final class BuyBuddyItem implements Serializable {
     private int h_id;
     private int id;
     private BuyBuddyItemData metadata;
-    private String image;
+    private String[] images;
     private String description;
     private BuyBuddyItemPrice price;
     private int[] appliedCampaingIds;
     private BuyBuddyStore store;
+    private HashMap<String, SizeImageMetaData> others;
 
-    public BuyBuddyStore getStore() {
-        return store;
-    }
 
-    @Nullable public int[] getAppliedCampaingIds() {
-        return appliedCampaingIds;
-    }
 
     public BuyBuddyItem setAppliedCampaingIds(int[] appliedCampaingIds) {
         this.appliedCampaingIds = appliedCampaingIds;
@@ -58,12 +55,24 @@ public final class BuyBuddyItem implements Serializable {
         return description;
     }
 
-    public String getImageURL() {
-        return image;
+    public String[] getImageURL() {
+        return images;
     }
 
     public BuyBuddyItemPrice getPrice() {
         return price;
     }
+
+    public BuyBuddyStore getStore() {
+        return store;
+    }
+
+    public HashMap<String,SizeImageMetaData> getOthers(){return others;}
+
+    @Nullable public int[] getAppliedCampaingIds() {
+        return appliedCampaingIds;
+    }
+
+
 }
 

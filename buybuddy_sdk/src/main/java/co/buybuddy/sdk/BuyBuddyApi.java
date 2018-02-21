@@ -364,7 +364,13 @@ public final class BuyBuddyApi {
                                                                                                             .add("campaigns", campaingIds)
                                                                                                             .add("hitags", hitagIds)
                                                                                                             .add("sub_total", sub_total)
-                                                                                                            .add("address",address)
+                                                                                                            .add("address",new ParameterMap().add("name",address.getTitle())
+                                                                                                                                             .add("street",address.getStreet())
+                                                                                                                                             .add("region",address.getRegion())
+                                                                                                                                             .add("city",address.getCity())
+                                                                                                                                             .add("zipcode",address.getZipcode())
+                                                                                                                                             .add("address",address.getDefinition())
+                                                                                                                                             .add("country",address.getCountry()).getMap())
                                                                                                             .add("email",email)
                                                                                                             .add("gId",governmentId).getMap())),
              delegate);

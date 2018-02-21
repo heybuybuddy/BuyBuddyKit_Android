@@ -30,6 +30,7 @@ import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
 import co.buybuddy.sdk.location.BuyBuddyStore;
 import co.buybuddy.sdk.location.BuyBuddyStoreInfoDelegate;
+import co.buybuddy.sdk.model.Address;
 import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
@@ -67,12 +68,12 @@ public class MainActivity extends AppCompatActivity {
         btnRelease.setAlpha(0);
 
         hitagIds = new ArraySet<>();
-        hitagIds.add("SVDA01085");
+        hitagIds.add("BNGS04561");
 
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
                 .setSandBoxMode(true)
-                .setUserToken("ez73kR5hQeKOwecOc54PZL/A15NA9UlNntZvviAWp3rQmKSN5PJHarZ1we1iWLQdJxqvbwV2RiCtvFxgvaTvIw==");
+                .setUserToken("2Q42n+pMRru4tBIUZLkjui/PQZCOm0GElfhZBGlzk5C7nh5AtE5LH5qimPUMiJjK7qdwx1RYQHqger3RG+3g7w==");
 
         btnCreateOrder.setVisibility(GONE);
 
@@ -117,13 +118,21 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnCreateOrder.setOnClickListener(new View.OnClickListener() {
+            Address address = new Address("asd","asd","asd","asd","asd","asd","asd");
+
             @Override
             public void onClick(View view) {
 
-            BuyBuddy.getInstance().shoppingCart.createOrder(new BuyBuddyApiCallback<OrderDelegate>() {
+            BuyBuddy.getInstance().shoppingCart.createOrder(address,"emir@buybuddy.co","22273019220",new BuyBuddyApiCallback<OrderDelegate>() {
                 @Override
                 public void success(BuyBuddyApiObject<OrderDelegate> response) {
-
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            btnRelease.setVisibility(View.VISIBLE);
+                            btnRelease.animate().alpha(1);
+                        }
+                    });
                 }
 
                 @Override
