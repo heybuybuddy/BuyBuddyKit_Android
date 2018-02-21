@@ -15,7 +15,7 @@ public class Address implements Serializable,Parcelable {
     private String street;
     private String region;
     private String city;
-    private Integer zipcode;
+    private String zipcode;
     private String definition;
     private String country;
     private Integer id;
@@ -26,7 +26,7 @@ public class Address implements Serializable,Parcelable {
         street = in.readString();
         region = in.readString();
         city = in.readString();
-        zipcode = in.readInt();
+        zipcode = in.readString();
         definition = in.readString();
         country = in.readString();
         id = in.readInt();
@@ -38,7 +38,7 @@ public class Address implements Serializable,Parcelable {
         dest.writeString(street);
         dest.writeString(region);
         dest.writeString(city);
-        dest.writeInt(zipcode);
+        dest.writeString(zipcode);
         dest.writeString(definition);
         dest.writeString(country);
         dest.writeInt(id);
@@ -78,7 +78,7 @@ public class Address implements Serializable,Parcelable {
         return city;
     }
 
-    public Integer getZipcode(){
+    public String getZipcode(){
         return zipcode;
     }
 
