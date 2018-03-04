@@ -17,7 +17,7 @@ public class BuyBuddyStoreInfoProvider {
     private static long LOCATION_PERIOD_OF_VALIDITY = 300000L;
 
     private BuyBuddyStore location = null;
-    private BuyBuddyStoreInfoDelegate delegate;
+    BuyBuddyStoreInfoDelegate delegate;
 
     public void setDelegate(BuyBuddyStoreInfoDelegate delegate) {
         this.delegate = delegate;

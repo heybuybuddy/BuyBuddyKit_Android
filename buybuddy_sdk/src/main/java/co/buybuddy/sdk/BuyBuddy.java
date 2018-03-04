@@ -73,7 +73,7 @@ public class BuyBuddy {
             ex.printStackTrace();
         }
 
-        //mContext.startService(new Intent(getContext(), HitagScanService.class));
+        mContext.startService(new Intent(getContext(), HitagScanService.class));
         mContext.stopService(new Intent(getContext(), BuyBuddyHitagReleaser.class));
     }
 }

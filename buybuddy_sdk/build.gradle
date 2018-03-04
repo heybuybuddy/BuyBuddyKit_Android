@@ -63,8 +63,8 @@ artifactory {
         repository {
             repoKey = 'libs-release-local'
 
-            username = artifactory_username
-            password = artifactory_password
+//            username = artifactory_username
+   //         password = artifactory_password
         }
         defaults {
             publications('aar')
