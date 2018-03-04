@@ -47,7 +47,6 @@ final public class HitagScanService extends Service  {
     private int reportCount = 0;
     private BluetoothLeScannerCompat mBleScanner;
     private ScanCallbackCompat scanCallback;
-    private HitagScanServiceCallBack delegate;
     private Boolean regionActive = false;
 
     private final static String TAG = "HitagScanService";
@@ -59,11 +58,6 @@ final public class HitagScanService extends Service  {
     static Map<String, CollectedHitagTS> activeHitags = new HashMap<>();
     static Map<String, CollectedHitagTS> passiveHitags = new HashMap<>();
     static ArrayList<CollectedHitag> collectedHitags = new ArrayList<>();
-
-    public HitagScanService setHitagScanServiceCallback(HitagScanServiceCallBack delegate) {
-        this.delegate = delegate;
-        return this;
-    }
 
     private void initStartBluetoothScan() {
 
@@ -106,7 +100,8 @@ final public class HitagScanService extends Service  {
                                                                        result.getRssi());
 
                     if (hitag != null) {
-                        delegate.didEnterBeaconRegion();
+                        BuyBuddy.getInstance().getStoreInfoProvider().getLocation(hitag.getId());
+
                         regionActive = true;
 
                         BuyBuddy.getInstance()
@@ -229,7 +224,6 @@ final public class HitagScanService extends Service  {
 
         if (activeHitags.isEmpty() && regionActive){
             regionActive = false;
-            delegate.didExitBeaconRegion();
         }
 
         reportCount++;
