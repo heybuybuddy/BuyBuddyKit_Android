@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
                 .setSandBoxMode(true)
-                .setUserToken("uZa/RBHIQNqA3JGJdoNFJ9g8HciZSkW+mDBnUHVQJVQDHVanvKNADrogQNUD7mtEVjIjKgdhQAKX1vti2A9u7w==");
+                .setUserToken("dLgOo29JTrqafHVp/8VZYcBeqiWua0zHn888OzFsZcv2+VZ3XjFACbfgihGllovVO3D/W17wRXqwL1EFV2Gpaw==");
 
         btnCreateOrder.setVisibility(GONE);
 
@@ -103,17 +103,16 @@ public class MainActivity extends AppCompatActivity {
         BuyBuddy.getInstance().getStoreInfoProvider().setDelegate(new BuyBuddyStoreInfoDelegate() {
             @Override
             public void enterRegion(BuyBuddyStore store) {
-
+                Log.d("asdas", "enterRegion: ");
             }
 
             @Override
             public void activeRegion(BuyBuddyStore store) {
-
+                Log.d("asdasd", "activeRegion: ");
             }
 
             @Override
             public void exitRegion(BuyBuddyStore store) {
-
             }
         });
 
@@ -125,10 +124,11 @@ public class MainActivity extends AppCompatActivity {
 
             BuyBuddy.getInstance().shoppingCart.createOrder(address,"emir@buybuddy.co","22273019220",new BuyBuddyApiCallback<OrderDelegate>() {
                 @Override
-                public void success(BuyBuddyApiObject<OrderDelegate> response) {
+                public void success(final BuyBuddyApiObject<OrderDelegate> response) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            orderId = response.getData().getOrderId();
                             btnRelease.setVisibility(View.VISIBLE);
                             btnRelease.animate().alpha(1);
                         }
