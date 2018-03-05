@@ -18,7 +18,7 @@ public class Address implements Serializable,Parcelable {
     private String zipcode;
     private String address;
     private String country;
-    private Integer id;
+    private Integer id = -1000;
 
 
     protected Address(Parcel in) {
