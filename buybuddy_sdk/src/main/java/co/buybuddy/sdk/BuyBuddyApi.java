@@ -66,6 +66,11 @@ public final class BuyBuddyApi {
         return this;
     }
 
+    public BuyBuddyApi setPublicAuthParameters(String apiKey, String apiUser) {
+        authorization.setApiKeyApiUser(apiKey, apiUser);
+        return this;
+    }
+
     public BuyBuddyApi setUserToken(String token){
         authorization.updateToken(token);
         return this;
@@ -383,6 +388,19 @@ public final class BuyBuddyApi {
 
         call(BuyBuddyBasketCampaign.class, model, delegate);
 
+    }
+
+    BuyBuddyApiObject<BuyBuddyJwt> getPublicAuthJwt(String apiKey,
+                                                    String apiUser,
+                                                    String bundleIdentifier,
+                                                    String UUID) throws BuyBuddyApiError, IOException {
+        return call(BuyBuddyJwt.class,
+                BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.Jwt, new ParameterMap().add("public_auth_submission", new ParameterMap()
+                        .add("api_key", apiKey)
+                        .add("api_user", apiUser)
+                        .add("bundle_identifier", bundleIdentifier)
+                        .add("uuid", UUID)
+                        .getMap())));
     }
 
     BuyBuddyApiObject<BuyBuddyJwt> getJwt(String token) throws BuyBuddyApiError, IOException {

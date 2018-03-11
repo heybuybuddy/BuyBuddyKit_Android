@@ -13,7 +13,6 @@ import android.widget.Button;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.util.Locale;
 import java.util.Set;
 
 import co.buybuddy.sampledelegateapp.adapter.HitagReleaseStatusAdapter;
@@ -21,21 +20,17 @@ import co.buybuddy.sampledelegateapp.adapter.HitagViewHolder;
 import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.BuyBuddyShoppingCartDelegate;
 import co.buybuddy.sdk.BuyBuddyUtil;
-import co.buybuddy.sdk.HitagScanService;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaserDelegate;
 import co.buybuddy.sdk.ble.BuyBuddyHitagReleaseManager;
 import co.buybuddy.sdk.ble.HitagState;
-import co.buybuddy.sdk.ble.blecompat.BluetoothLeCompatException;
 import co.buybuddy.sdk.interfaces.BuyBuddyApiCallback;
 import co.buybuddy.sdk.interfaces.BuyBuddyUserTokenExpiredDelegate;
 import co.buybuddy.sdk.location.BuyBuddyStore;
 import co.buybuddy.sdk.location.BuyBuddyStoreInfoDelegate;
 import co.buybuddy.sdk.model.Address;
-import co.buybuddy.sdk.model.BuyBuddyBasketCampaign;
 import co.buybuddy.sdk.responses.BuyBuddyApiError;
 import co.buybuddy.sdk.responses.BuyBuddyApiObject;
 import co.buybuddy.sdk.model.BuyBuddyItem;
-import co.buybuddy.sdk.responses.BuyBuddyBase;
 import co.buybuddy.sdk.responses.OrderDelegate;
 
 import static android.view.View.GONE;
@@ -68,11 +63,12 @@ public class MainActivity extends AppCompatActivity {
         btnRelease.setAlpha(0);
 
         hitagIds = new ArraySet<>();
-        hitagIds.add("BNGS04561");
+        hitagIds.add("ERSL01260");
 
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
                 .setSandBoxMode(true)
+                .setPublicAuthParameters("b2Z1cmthbmFiaTEyMzY4OTMxMjMxZmF1cmw5NzEyMzQxbWFkeMOnZMOnZA==", "ANDROIDTEST")
                 .setUserToken("dLgOo29JTrqafHVp/8VZYcBeqiWua0zHn888OzFsZcv2+VZ3XjFACbfgihGllovVO3D/W17wRXqwL1EFV2Gpaw==");
 
         btnCreateOrder.setVisibility(GONE);
@@ -168,6 +164,33 @@ public class MainActivity extends AppCompatActivity {
         });*/
 
 
+        manager.startReleasing(-12398).subscribeForHitagEvents(new BuyBuddyHitagReleaserDelegate() {
+            @Override
+            public void onExceptionThrown(Exception exception) {
+                super.onExceptionThrown(exception);
+            }
+
+            @Override
+            public void onHitagFailed(String hitagId, HitagState event) {
+                super.onHitagFailed(hitagId, event);
+            }
+
+            @Override
+            public void onHitagEvent(String hitagId, HitagState event) {
+                super.onHitagEvent(hitagId, event);
+            }
+
+            @Override
+            public void onHitagReleased(String hitagId) {
+                super.onHitagReleased(hitagId);
+            }
+
+            @Override
+            public void didFinish() {
+                super.didFinish();
+            }
+        });
+
         btnRelease.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -248,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onExceptionThrown(BluetoothLeCompatException exception) {
+                    public void onExceptionThrown(Exception exception) {
                         super.onExceptionThrown(exception);
 
                         Log.d("*x* EXCEPTION", "ex" + exception.toString());

@@ -91,26 +91,30 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
         @Override
         public void run() {
 
+            if (willOpenDevices.size() + tryingDevices.size() + failedDevices.size() == 0) {
+                stopSelf();
+            }
+
             try {
-                Log.d("*x**", "WILL OPEN COUNT" + willOpenDevices.size());
+                BuyBuddyUtil.printD("*x**", "WILL OPEN COUNT" + willOpenDevices.size());
                 String print = "";
                 for (String hitagId : willOpenDevices) {
                     print += " " + hitagId;
                 }
 
-                Log.d("*x**", "TRYING COUNT" + tryingDevices.size());
+                BuyBuddyUtil.printD("*x**", "TRYING COUNT" + tryingDevices.size());
                 print = "";
                 for (String hitagId : willOpenDevices) {
                     print += " " + hitagId;
                 }
 
-                Log.d("*x**", "FAILED COUNT" + failedDevices.size());
+                BuyBuddyUtil.printD("*x**", "FAILED COUNT" + failedDevices.size());
                 print = "";
                 for (String hitagId : failedDevices.keySet()) {
                     print += " " + hitagId;
                 }
 
-                Log.d("*x**", "FOUND HITAGS: " + foundHitags.size());
+                BuyBuddyUtil.printD("*x**", "FOUND HITAGS: " + foundHitags.size());
 
             }catch (Exception ex){
                 ex.printStackTrace();
@@ -146,7 +150,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                 stopSelf();
 
             } else {
-                Log.d("*x*", " Bulunan cihaz sayısı : " + foundHitags.size());
+                BuyBuddyUtil.printD("*x*", " Bulunan cihaz sayısı : " + foundHitags.size());
                 notFoundHitagHandler.postDelayed(this, 15000);
             }
         }
@@ -578,8 +582,8 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
                 @Override
                 public void error(BuyBuddyApiError error) {
-                    Log.d("*x**", error.getResponseCode() + "");
-                    Log.d("*x**", "WRONG PASS VERSION");
+                    BuyBuddyUtil.printD("*x**", error.getResponseCode() + "");
+                    BuyBuddyUtil.printD("*x**", "WRONG PASS VERSION");
 
                     if (error.getResponseCode() == 401) {
 

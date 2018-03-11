@@ -1,5 +1,6 @@
 package co.buybuddy.sdk;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.IOException;
@@ -25,6 +26,12 @@ class BuyBuddyAuthorization implements Interceptor{
 
     public void updateToken(String token){
         tokenManager.setToken(token);
+        tokenManager.setJwt(null, -1);
+    }
+
+    public void setApiKeyApiUser(String apiKey, String apiUser) {
+        tokenManager.setApiKeyAndApiUser(apiKey, apiUser);
+        tokenManager = BuyBuddyTokenManager.getCurrent();
     }
 
     public void setUserTokenExpiredDelegate(BuyBuddyUserTokenExpiredDelegate delegate){
@@ -32,7 +39,7 @@ class BuyBuddyAuthorization implements Interceptor{
     }
 
     @Override
-    public Response intercept(Chain chain) throws IOException {
+    public Response intercept(@NonNull Chain chain) throws IOException {
         Request request = chain.request();
 
         UUID uuid = UUID.randomUUID();
@@ -90,15 +97,26 @@ class BuyBuddyAuthorization implements Interceptor{
     }
 
     private void setAuthHeader(Request.Builder builder) {
-        if (tokenManager.getJwt() != null) //Add Auth token to each request if authorized
-        {
+        if (tokenManager.getJwt() != null) { //Add Auth token to each request if authorized
             builder.header("Authorization", String.format("Bearer %s", tokenManager.getJwt()));
         }
     }
 
     private int refreshJwt() {
         try {
-            BuyBuddyApiObject<BuyBuddyJwt> jwt = BuyBuddy.getInstance().api.getJwt(tokenManager.getToken());
+
+            BuyBuddyApiObject<BuyBuddyJwt> jwt;
+
+            if (tokenManager.getToken() == null) {
+                jwt = BuyBuddy.getInstance().api.getPublicAuthJwt(tokenManager.getApiKey(),
+                                                                  tokenManager.getApiUser(),
+                                                                  BuyBuddy.getContext().getPackageName(),
+                                                                  tokenManager.getUuid());
+            } else {
+                jwt = BuyBuddy.getInstance().api.getJwt(tokenManager.getToken());
+            }
+
+
 
             if (jwt != null){
                 if (jwt.getData() != null && jwt.getData().getJwt() != null)

@@ -9,10 +9,11 @@ public abstract class BuyBuddyHitagReleaserDelegate implements IBuyBuddyHitagRel
     /**
      *
      * @param exception look at the {@link HitagReleaserException}
+     * exception look at the {@link BluetoothLeCompatException}
      */
 
     @Override
-    public void onExceptionThrown(BluetoothLeCompatException exception) {
+    public void onExceptionThrown(Exception exception) {
 
     }
 

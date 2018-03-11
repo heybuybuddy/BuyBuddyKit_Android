@@ -15,6 +15,9 @@ public final class BuyBuddyUtil {
     static final String TOKEN_KEY = "token";
     static final String JWT_KEY = "jwt";
     static final String USER_ID = "user_id";
+    static final String USER_UUID = "uuid";
+    static final String API_KEY = "api_key";
+    static final String API_USER = "api_user";
 
     public static String getFromSP(String key){
 
@@ -55,7 +58,7 @@ public final class BuyBuddyUtil {
         DEBUG = debug;
     }
 
-    public static String w(Object obj){ // Write if object is not null
+    public static String w(Object obj) { // Write if object is not null
         return obj != null ? obj.toString() : "__NULL__";
     }
 }

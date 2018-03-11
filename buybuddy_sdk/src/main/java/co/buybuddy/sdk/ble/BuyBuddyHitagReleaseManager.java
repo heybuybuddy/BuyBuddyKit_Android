@@ -10,6 +10,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.BuyBuddyUtil;
 import co.buybuddy.sdk.ble.blecompat.BluetoothLeCompatException;
+import co.buybuddy.sdk.ble.exception.HitagReleaserException;
 
 /**
  * Created by Furkan Ençkü on 9/12/17.
@@ -20,7 +21,7 @@ interface IBuyBuddyHitagReleaser {
     void onHitagFailed(String hitagId, HitagState event);
     void onHitagEvent(String hitagId, HitagState event);
     void onHitagReleased(String hitagId);
-    void onExceptionThrown(BluetoothLeCompatException exception);
+    void onExceptionThrown(Exception exception);
     void didFinish();
 }
 
@@ -96,6 +97,12 @@ public final class BuyBuddyHitagReleaseManager {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onBleScanException(BluetoothLeCompatException exception) {
+        if (delegate != null)
+            delegate.onExceptionThrown(exception);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onSaleException(HitagReleaserException exception) {
         if (delegate != null)
             delegate.onExceptionThrown(exception);
     }
