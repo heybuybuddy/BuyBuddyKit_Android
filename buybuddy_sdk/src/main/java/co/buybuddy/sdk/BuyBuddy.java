@@ -53,11 +53,12 @@ public class BuyBuddy {
 
     public static BuyBuddy getInstance(){
 
-        if (mContext == null)
-            throw new RuntimeException(new BuyBuddyError());
-
-        synchronized (Object.class){
-            return _instance;
+        if (mContext != null){
+            synchronized (Object.class){
+                return _instance;
+            }
+        } else {
+            return null;
         }
     }
 
