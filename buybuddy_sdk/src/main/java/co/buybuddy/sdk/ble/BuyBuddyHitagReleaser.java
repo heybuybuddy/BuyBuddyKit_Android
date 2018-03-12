@@ -174,64 +174,6 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mBleScanner = new BluetoothLeScannerCompat(this);
 
-        mScanCallback = new ScanCallbackCompat() {
-            @Override
-            public void onScanResult(int callbackType, final ScanResultCompat result) {
-                super.onScanResult(callbackType, result);
-
-                if (willOpenDevices.size() == 0 && tryingDevices.size() == 0) {
-                    stopScanning();
-                    EventBus.getDefault().post(new HitagEventFromService(null, null).setEventType(2));
-                    EventBus.getDefault().unregister(BuyBuddyHitagReleaser.this);
-                    stopSelf();
-                }
-
-                if (result != null) {
-                    if (result.getScanRecord() != null) {
-                        if (result.getScanRecord().getBytes() != null) {
-
-                            final CollectedHitagTS hitag = CollectedHitagTS.getHitag(null, result.getScanRecord().getBytes(), result.getRssi());
-
-                            if (hitag != null) {
-
-                                if (!foundHitags.contains(hitag.getId()) && hitagList.contains(hitag.getId()))
-                                    foundHitags.add(hitag.getId());
-
-                                BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitag.getId());
-
-                                if (willOpenDevices.contains(hitag.getId())){
-
-                                    if (BuyBuddyBleUtils.getMaximumConnectableDeviceCount() - (getConnectedDeviceCount() + tryingDevices.size()) > 1) {
-                                        willOpenDevices.remove(hitag.getId());
-                                        tryingDevices.add(hitag.getId());
-
-                                        if (tryCountForDevices.get(hitag.getId()) != null) {
-                                            tryCountForDevices.put(hitag.getId(), tryCountForDevices.get(hitag.getId()) + 1);
-                                        } else {
-                                            tryCountForDevices.put(hitag.getId(), 0);
-                                        }
-
-                                        Hitag willConnectHitag = new Hitag(BuyBuddyHitagReleaser.this, result.getDevice())
-                                                .setHitagDelegate(BuyBuddyHitagReleaser.this)
-                                                .setHitagId(hitag.getId());
-
-                                        deviceMap.put(hitag.getId(), willConnectHitag);
-
-                                        BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitag.getId() + " will connect");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onScanFailed(int errorCode) {
-                super.onScanFailed(errorCode);
-            }
-        };
-
         BuyBuddyUtil.printD(TAG, "Releaser : " + instanceID);
         mWatcher.postDelayed(mWatcherRunnable, 1500);
     }
@@ -422,22 +364,13 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                     tryCountForDevices.put(hitag.getId(), 0);
                 }
 
-                Thread hitagConnection = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Looper.prepare();
+                Hitag willConnectHitag = new Hitag(BuyBuddyHitagReleaser.this, hitag.getDevice())
+                        .setHitagDelegate(BuyBuddyHitagReleaser.this)
+                        .setHitagId(hitag.getId());
 
-                        Hitag willConnectHitag = new Hitag(BuyBuddyHitagReleaser.this, hitag.getDevice())
-                                .setHitagDelegate(BuyBuddyHitagReleaser.this)
-                                .setHitagId(hitag.getId());
+                deviceMap.put(hitag.getId(), willConnectHitag);
 
-                        deviceMap.put(hitag.getId(), willConnectHitag);
-
-                        BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitag.getId() + " will connect");
-                    }
-                });
-
-                hitagConnection.start();
+                BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitag.getId() + " will connect");
             }
         }
     }
@@ -465,14 +398,14 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
                     tryCountForDevices.put(hitagId, tryCountForDevices.get(hitagId) + 1);
 
-                    if (tryCountForDevices.get(hitagId) > 4) {
+                    if (tryCountForDevices.get(hitagId) > 6) {
                         tryingDevices.remove(hitagId);
                         failedDevices.put(hitagId, HitagState.CONNECTION_FAILED.ordinal());
                         EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.CONNECTION_FAILED).setEventType(1));
                     }else {
                         if (deviceMap.get(hitagId) != null) {
                             deviceMap.get(hitagId).forceDisconnect();
-                            deviceMap.remove(hitagId);
+                            //deviceMap.remove(hitagId);
                             tryingDevices.remove(hitagId);
                             willOpenDevices.add(hitagId);
                         }
@@ -494,7 +427,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                     }else {
                         if (deviceMap.get(hitagId) != null) {
                             deviceMap.get(hitagId).forceDisconnect();
-                            deviceMap.remove(hitagId);
+                            //deviceMap.remove(hitagId);
                             tryingDevices.remove(hitagId);
                             willOpenDevices.add(hitagId);
                         }
@@ -543,12 +476,16 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
             }else if (HitagState.compare(HitagState.PASSWORD_OLD, value)) {
 
+                BuyBuddyUtil.printD(TAG,"tt- 4g");
+
                 tryingDevices.remove(hitagId);
                 failedDevices.put(hitagId, HitagState.PASSWORD_OLD.ordinal());
                 EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.PASSWORD_OLD).setEventType(1));
                 deviceMap.get(hitagId).disconnect();
 
             }else if (HitagState.compare(HitagState.PASSWORD_WRONG, value) || HitagState.compare(HitagState.RELEASE_VALIDATION_FAILED, value)) {
+
+                BuyBuddyUtil.printD(TAG,"tt- 4j");
 
                 tryingDevices.remove(hitagId);
                 failedDevices.put(hitagId, HitagState.PASSWORD_WRONG.ordinal());
@@ -568,37 +505,46 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
     @Override
     public void onCharacteristicRead(final String hitagId, Hitag.Characteristic chars, byte[] value) {
 
-        if (deviceMap.get(hitagId).getConnectionState() == STATE_CONNECTED
-                && tryingDevices.contains(hitagId) && chars == Hitag.Characteristic.PASSWORD_VERSION) {
+        synchronized (deviceMap.get(hitagId)) {
+            if (deviceMap.get(hitagId).getConnectionState() == STATE_CONNECTED
+                    && tryingDevices.contains(hitagId) && chars == Hitag.Characteristic.PASSWORD_VERSION) {
 
-            BuyBuddyUtil.printD(TAG, Integer.parseInt(BuyBuddyBleUtils.printHexBinary(value), 16) + "");
+                BuyBuddyUtil.printD(TAG, Integer.parseInt(BuyBuddyBleUtils.printHexBinary(value), 16) + "");
 
-            BuyBuddy.getInstance().api.getHitagPassword(hitagId, currentOrderId, Integer.parseInt(BuyBuddyBleUtils.printHexBinary(value), 16),
-            new BuyBuddyApiCallback<HitagPasswordPayload>() {
-                @Override
-                public void success(BuyBuddyApiObject<HitagPasswordPayload> response) {
-                    deviceMap.get(hitagId).releaseHitag(response.getData());
-                }
+                BuyBuddy.getInstance().api.getHitagPassword(hitagId, currentOrderId, Integer.parseInt(BuyBuddyBleUtils.printHexBinary(value), 16),
+                        new BuyBuddyApiCallback<HitagPasswordPayload>() {
+                            @Override
+                            public void success(BuyBuddyApiObject<HitagPasswordPayload> response) {
 
-                @Override
-                public void error(BuyBuddyApiError error) {
-                    BuyBuddyUtil.printD("*x**", error.getResponseCode() + "");
-                    BuyBuddyUtil.printD("*x**", "WRONG PASS VERSION");
+                                if (deviceMap.get(hitagId) != null) {
+                                    deviceMap.get(hitagId).releaseHitag(response.getData());
+                                } else {
+                                    BuyBuddyUtil.printD(TAG,"tt- 4h");
+                                }
+                            }
 
-                    if (error.getResponseCode() == 401) {
+                            @Override
+                            public void error(BuyBuddyApiError error) {
+                                BuyBuddyUtil.printD("*x**", error.getResponseCode() + "");
+                                BuyBuddyUtil.printD("*x**", "WRONG PASS VERSION");
 
-                    } else {
+                                BuyBuddyUtil.printD(TAG,"tt- 4hh");
 
-                    }
+                                if (error.getResponseCode() == 401) {
 
-                    EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.RELEASE_VALIDATION_FAILED).setEventType(1));
-                    if (tryingDevices.contains(hitagId)) {
-                        failedDevices.put(hitagId, HitagState.RELEASE_VALIDATION_FAILED.ordinal());
-                        tryingDevices.remove(hitagId);
-                        deviceMap.get(hitagId).disconnect();
-                    }
-                }
-            });
+                                } else {
+
+                                }
+
+                                EventBus.getDefault().post(new HitagEventFromService(hitagId, HitagState.RELEASE_VALIDATION_FAILED).setEventType(1));
+                                if (tryingDevices.contains(hitagId)) {
+                                    failedDevices.put(hitagId, HitagState.RELEASE_VALIDATION_FAILED.ordinal());
+                                    tryingDevices.remove(hitagId);
+                                    deviceMap.get(hitagId).disconnect();
+                                }
+                            }
+                        });
+            }
         }
     }
 

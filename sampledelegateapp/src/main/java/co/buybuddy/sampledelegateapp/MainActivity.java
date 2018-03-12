@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         btnRelease.setAlpha(0);
 
         hitagIds = new ArraySet<>();
-        hitagIds.add("ERSL01260");
+        hitagIds.add("BGRA04169");
 
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
@@ -162,34 +162,6 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });*/
-
-
-        manager.startReleasing(-12398).subscribeForHitagEvents(new BuyBuddyHitagReleaserDelegate() {
-            @Override
-            public void onExceptionThrown(Exception exception) {
-                super.onExceptionThrown(exception);
-            }
-
-            @Override
-            public void onHitagFailed(String hitagId, HitagState event) {
-                super.onHitagFailed(hitagId, event);
-            }
-
-            @Override
-            public void onHitagEvent(String hitagId, HitagState event) {
-                super.onHitagEvent(hitagId, event);
-            }
-
-            @Override
-            public void onHitagReleased(String hitagId) {
-                super.onHitagReleased(hitagId);
-            }
-
-            @Override
-            public void didFinish() {
-                super.didFinish();
-            }
-        });
 
         btnRelease.setOnClickListener(new View.OnClickListener() {
             @Override
