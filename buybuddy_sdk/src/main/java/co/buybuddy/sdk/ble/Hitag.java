@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.BuyBuddyUtil;
+import co.buybuddy.sdk.ble.btleasyncgatt.BtleAsyncGattManager;
 import co.buybuddy.sdk.model.HitagPasswordPayload;
 
 import static android.bluetooth.BluetoothGatt.GATT_SUCCESS;
@@ -49,6 +50,8 @@ class Hitag {
 
     private Queue<BluetoothGattDescriptor> descriptorWriteQueue = new LinkedList<>();
     private Queue<BluetoothGattCharacteristic> characteristicReadQueue = new LinkedList<>();
+
+    private BtleAsyncGattManager manager;
 
     private BluetoothGatt hitagGatt;
     private HashMap<Characteristic, BluetoothGattCharacteristic> htgCharacters;
@@ -167,17 +170,32 @@ class Hitag {
     }
 
     public boolean releaseHitag(HitagPasswordPayload password) {
+
+        BuyBuddyUtil.printD(TAG, "tt- 4p2");
+
         this.password = password;
         this.currentState = HitagState.PASSWORD_IN_PROGRESS;
 
         if (htgCharacters.get(PASSWORD) != null) {
 
-            htgCharacters.get(PASSWORD).setValue(BuyBuddyBleUtils.parseHexBinary(password.getFirst()));
+            BluetoothGattCharacteristic characteristic = htgCharacters.get(PASSWORD);
+            characteristic.setValue(BuyBuddyBleUtils.parseHexBinary(password.getFirst()));
 
             boolean wrote = hitagGatt.writeCharacteristic(htgCharacters.get(PASSWORD));
+
+            manager.writeCharacteristic(characteristic);
+
             isPasswordSend = true;
 
+            /*if (wrote) {
+                BuyBuddyUtil.printD(TAG, "tt- 4p3");
+            } else {
+                BuyBuddyUtil.printD(TAG, "tt- 4p4");
+            }*/
+
         }else {
+
+            BuyBuddyUtil.printD(TAG, "tt- 4p5");
             return false;
         }
 
@@ -203,6 +221,11 @@ class Hitag {
             connectionState = newState;
 
             if (newState == STATE_CONNECTED) {
+
+                manager = new BtleAsyncGattManager(gatt);
+                manager.start();
+                manager.enable();
+
                 connectionTimeoutHandler.removeCallbacks(timeOutRunnable);
                 notifyTimeoutHandler.postDelayed(notifyRunnable, TIMEOUT_DISCOVERING);
                 currentState = DISCOVERING;
@@ -235,14 +258,17 @@ class Hitag {
 
                                 if (foundChar == Characteristic.PASSWORD_VERSION) {
 
-                                    readCharacteristic(characteristic);
+                                    //readCharacteristic(characteristic);
+
+                                    manager.readCharacteristic(characteristic);
 
                                 } else if (foundChar == Characteristic.NOTIFIER){
 
                                     final BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
                                     //descriptor.setValue(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE);
                                     descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                                    writeDescriptor(descriptor);
+
+                                    manager.writeDescriptor(descriptor);
                                 }
                             }
                         }
@@ -269,13 +295,24 @@ class Hitag {
 
             BuyBuddyUtil.printD(TAG,"tt- 8");
 
-            descriptorWriteQueue.remove();  //pop the item that we just finishing writing
-            gatt.setCharacteristicNotification(htgCharacters.get(Characteristic.NOTIFIER), true);
+            manager.writeCompleted();
+
+            boolean notifier = gatt
+                    .setCharacteristicNotification
+                            (htgCharacters.get(Characteristic.NOTIFIER), true);
+
+            BuyBuddyUtil.printD(TAG, "tt- 9 " + notifier);
+
+            /*descriptorWriteQueue.remove();  //pop the item that we just finishing writing
+
+            boolean notifier = gatt
+                                .setCharacteristicNotification
+                                        (htgCharacters.get(Characteristic.NOTIFIER), true);
             //if there is more to write, do it!
             if(descriptorWriteQueue.size() > 0)
                 hitagGatt.writeDescriptor(descriptorWriteQueue.element());
             else if(characteristicReadQueue.size() > 0)
-                hitagGatt.readCharacteristic(characteristicReadQueue.element());
+                hitagGatt.readCharacteristic(characteristicReadQueue.element()); */
         }
 
         private void readCharacteristic(BluetoothGattCharacteristic c) {
@@ -293,6 +330,8 @@ class Hitag {
 
             BuyBuddyUtil.printD(TAG,"tt- 4b");
 
+            manager.readCompleted();
+
             if (status == GATT_SUCCESS) {
                 if (hitagDelegate != null) {
                     BuyBuddyUtil.printD(TAG,"tt- 4c");
@@ -308,23 +347,33 @@ class Hitag {
                 BuyBuddyUtil.printD(TAG,"tt- 4e");
             }
 
-            characteristicReadQueue.remove();
+            /*characteristicReadQueue.remove();
 
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     if(descriptorWriteQueue.size() > 0)
-                        hitagGatt.writeDescriptor(descriptorWriteQueue.element());
+                        if (hitagGatt.writeDescriptor(descriptorWriteQueue.element())) {
+                            BuyBuddyUtil.printD(TAG, "tt- 4w1");
+                        } else {
+                            BuyBuddyUtil.printD(TAG, "tt- 4w2");
+                        }
                     else if(characteristicReadQueue.size() > 0)
-                        hitagGatt.readCharacteristic(characteristicReadQueue.element());
+                        if (hitagGatt.readCharacteristic(characteristicReadQueue.element())) {
+                            BuyBuddyUtil.printD(TAG, "tt- 4w3");
+                        } else {
+                            BuyBuddyUtil.printD(TAG, "tt- 4w4");
+                        };
                 }
-            }).start();
+            }).start(); */
 
         }
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
+
+            manager.writeCompleted();
         }
 
         @Override
@@ -357,9 +406,12 @@ class Hitag {
 
                         currentState = HitagState.PASSWORD_FIRST_PAYLOAD;
 
-                        htgCharacters.get(PASSWORD).setValue(BuyBuddyBleUtils.parseHexBinary(password.getSecond()));
+                        BluetoothGattCharacteristic passwordCaracteristic = htgCharacters.get(PASSWORD);
+                        passwordCaracteristic.setValue(BuyBuddyBleUtils.parseHexBinary(password.getSecond()));
 
-                        hitagGatt.writeCharacteristic(htgCharacters.get(PASSWORD));
+                        manager.writeCharacteristic(passwordCaracteristic);
+
+                        //hitagGatt.writeCharacteristic(htgCharacters.get(PASSWORD));
 
                     }else if (HitagState.compare(HitagState.PASSWORD_SECOND_PAYLOAD, value)) {
 
@@ -370,9 +422,12 @@ class Hitag {
 
                         currentState = HitagState.PASSWORD_SECOND_PAYLOAD;
 
-                        htgCharacters.get(PASSWORD).setValue(BuyBuddyBleUtils.parseHexBinary(password.getThird()));
+                        BluetoothGattCharacteristic passwordCaracteristic = htgCharacters.get(PASSWORD);
+                        passwordCaracteristic.setValue(BuyBuddyBleUtils.parseHexBinary(password.getThird()));
 
-                        hitagGatt.writeCharacteristic(htgCharacters.get(PASSWORD));
+                        manager.writeCharacteristic(passwordCaracteristic);
+
+                        //hitagGatt.writeCharacteristic(htgCharacters.get(PASSWORD));
 
                     }else if (HitagState.compare(HitagState.RELEASE_PROCESS_STARTING, value)) {
 
