@@ -26,12 +26,18 @@ public final class BuyBuddyShoppingCartManager {
     private Map<String, BuyBuddyItem> basket;
     private Map<Integer, BuyBuddyCampaign> campaigns;
     private Map<Integer, BuyBuddyCampaignItem> campaignItems;
+    private ArrayList<String> hitagIdArrayList = new ArrayList<>();
 
     public ArrayList<BuyBuddyItem> getItems() {
         if (basket != null) {
-            return new ArrayList<>(basket.values());
-        }
 
+            ArrayList<BuyBuddyItem> tempArray = new ArrayList<>();
+
+            for(String id: hitagIdArrayList) {
+                tempArray.add(basket.get(id));
+            }
+            return tempArray;
+        }
         return new ArrayList<>();
     }
 
@@ -48,7 +54,6 @@ public final class BuyBuddyShoppingCartManager {
             hitagIds[index] = basket.get(compiledIdentifier).getHitagIdInt();
             index++;
         }
-
         return hitagIds;
     }
 
@@ -62,6 +67,8 @@ public final class BuyBuddyShoppingCartManager {
         if (basket != null) {
 
             basket.put(item.getHitagId(),item);
+            hitagIdArrayList.add(item.getHitagId());
+
             updateBasket(delegate);
             return true;
         }
@@ -143,6 +150,7 @@ public final class BuyBuddyShoppingCartManager {
 
         if (basket != null){
             basket.clear();
+            hitagIdArrayList.clear();
             return true;
         }
 
@@ -161,7 +169,7 @@ public final class BuyBuddyShoppingCartManager {
         if (basket != null) {
             if (basket.get(hitagId) != null) {
                 basket.remove(hitagId);
-
+                hitagIdArrayList.remove(hitagId);
                 updateBasket(delegate);
                 return true;
             }
@@ -174,6 +182,7 @@ public final class BuyBuddyShoppingCartManager {
         if (basket != null) {
             if (basket.get(item.getHitagId()) != null) {
                 basket.remove(item.getHitagId());
+                hitagIdArrayList.remove(item.getHitagId());
 
                 updateBasket(delegate);
                 return true;
