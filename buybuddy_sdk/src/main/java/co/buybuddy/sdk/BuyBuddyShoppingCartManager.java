@@ -26,13 +26,20 @@ public final class BuyBuddyShoppingCartManager {
     private Map<String, BuyBuddyItem> basket;
     private Map<Integer, BuyBuddyCampaign> campaigns;
     private Map<Integer, BuyBuddyCampaignItem> campaignItems;
+    private ArrayList<String> hitagIdArrayList = new ArrayList<>();
 
     public ArrayList<BuyBuddyItem> getItems() {
         if (basket != null) {
             return new ArrayList<>(basket.values());
         }
 
-        return new ArrayList<>();
+        ArrayList<BuyBuddyItem> tempArray = new ArrayList<>();
+
+        for(String id: hitagIdArrayList) {
+           tempArray.add(basket.get(id));
+        }
+
+        return tempArray;
     }
 
     public Map<Integer, BuyBuddyCampaign> getCampaigns() {
@@ -60,7 +67,7 @@ public final class BuyBuddyShoppingCartManager {
 
     public boolean addToBasket(@NonNull BuyBuddyItem item, @Nullable final BuyBuddyShoppingCartDelegate delegate){
         if (basket != null) {
-
+            hitagIdArrayList.add(item.getHitagId());
             basket.put(item.getHitagId(),item);
             updateBasket(delegate);
             return true;
@@ -142,6 +149,7 @@ public final class BuyBuddyShoppingCartManager {
     public boolean removeAll(){
 
         if (basket != null){
+            hitagIdArrayList.clear();
             basket.clear();
             return true;
         }
@@ -161,7 +169,7 @@ public final class BuyBuddyShoppingCartManager {
         if (basket != null) {
             if (basket.get(hitagId) != null) {
                 basket.remove(hitagId);
-
+                hitagIdArrayList.remove(hitagId);
                 updateBasket(delegate);
                 return true;
             }
@@ -174,7 +182,7 @@ public final class BuyBuddyShoppingCartManager {
         if (basket != null) {
             if (basket.get(item.getHitagId()) != null) {
                 basket.remove(item.getHitagId());
-
+                hitagIdArrayList.remove(item.getHitagId());
                 updateBasket(delegate);
                 return true;
             }
