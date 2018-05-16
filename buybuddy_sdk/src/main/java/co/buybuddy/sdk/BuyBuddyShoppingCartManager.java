@@ -30,16 +30,17 @@ public final class BuyBuddyShoppingCartManager {
 
     public ArrayList<BuyBuddyItem> getItems() {
         if (basket != null) {
-            return new ArrayList<>(basket.values());
+
+          ArrayList<BuyBuddyItem> tempArray = new ArrayList<>();
+
+          for(String id: hitagIdArrayList) {
+            tempArray.add(basket.get(id));
+          }
+
+          return tempArray;
         }
-
-        ArrayList<BuyBuddyItem> tempArray = new ArrayList<>();
-
-        for(String id: hitagIdArrayList) {
-           tempArray.add(basket.get(id));
-        }
-
-        return tempArray;
+      
+        return new ArrayList<>();
     }
 
     public Map<Integer, BuyBuddyCampaign> getCampaigns() {
@@ -55,7 +56,6 @@ public final class BuyBuddyShoppingCartManager {
             hitagIds[index] = basket.get(compiledIdentifier).getHitagIdInt();
             index++;
         }
-
         return hitagIds;
     }
 
@@ -69,6 +69,8 @@ public final class BuyBuddyShoppingCartManager {
         if (basket != null) {
             hitagIdArrayList.add(item.getHitagId());
             basket.put(item.getHitagId(),item);
+            hitagIdArrayList.add(item.getHitagId());
+
             updateBasket(delegate);
             return true;
         }
