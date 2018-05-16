@@ -514,10 +514,13 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                 BuyBuddy.getInstance().api.getHitagPassword(hitagId, currentOrderId, Integer.parseInt(BuyBuddyBleUtils.printHexBinary(value), 16),
                         new BuyBuddyApiCallback<HitagPasswordPayload>() {
                             @Override
-                            public void success(BuyBuddyApiObject<HitagPasswordPayload> response) {
+                            public void success(final BuyBuddyApiObject<HitagPasswordPayload> response) {
 
                                 if (deviceMap.get(hitagId) != null) {
+
+                                    BuyBuddyUtil.printD(TAG,"tt- 4p");
                                     deviceMap.get(hitagId).releaseHitag(response.getData());
+
                                 } else {
                                     BuyBuddyUtil.printD(TAG,"tt- 4h");
                                 }

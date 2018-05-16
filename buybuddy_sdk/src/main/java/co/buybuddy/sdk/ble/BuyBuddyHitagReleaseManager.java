@@ -12,19 +12,6 @@ import co.buybuddy.sdk.BuyBuddyUtil;
 import co.buybuddy.sdk.ble.blecompat.BluetoothLeCompatException;
 import co.buybuddy.sdk.ble.exception.HitagReleaserException;
 
-/**
- * Created by Furkan Ençkü on 9/12/17.
- * This code written by buybuddy Android Team
- */
-
-interface IBuyBuddyHitagReleaser {
-    void onHitagFailed(String hitagId, HitagState event);
-    void onHitagEvent(String hitagId, HitagState event);
-    void onHitagReleased(String hitagId);
-    void onExceptionThrown(Exception exception);
-    void didFinish();
-}
-
 public final class BuyBuddyHitagReleaseManager {
 
     private BuyBuddyHitagReleaserDelegate delegate;
