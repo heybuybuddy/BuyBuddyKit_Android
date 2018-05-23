@@ -63,7 +63,8 @@ public class MainActivity extends AppCompatActivity {
         btnRelease.setAlpha(0);
 
         hitagIds = new ArraySet<>();
-        hitagIds.add("BGRA04169");
+        hitagIds.add("DENZ15084");
+        hitagIds.add("SLDA06778");
 
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
@@ -150,18 +151,6 @@ public class MainActivity extends AppCompatActivity {
                 hitagStatusAdapter.clear();
             }
         });
-
-        /*BuyBuddy.getInstance().api.setUserEmail("frkncku@gmail.com", new BuyBuddyApiCallback<BuyBuddyBase>() {
-            @Override
-            public void success(BuyBuddyApiObject<BuyBuddyBase> response) {
-
-            }
-
-            @Override
-            public void error(BuyBuddyApiError error) {
-
-            }
-        });*/
 
         btnRelease.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -261,6 +250,8 @@ public class MainActivity extends AppCompatActivity {
 
         qwe2 = "f";
         Log.d("", "onCreate: ");
+
+        BuyBuddyUtil.setDEBUG(false);
 
     }
 

@@ -18,7 +18,7 @@ import co.buybuddy.sdk.BuyBuddyUtil;
 
 public class BtleAsyncGattManager extends Thread implements Runnable {
 
-    public static String TAG = "BtleAsyncGattManager";
+    static String TAG = "BtleAsyncGattManager";
     private BluetoothGatt gatt;
 
     private BlockingQueue<BtleAsyncGattCommand> queue;

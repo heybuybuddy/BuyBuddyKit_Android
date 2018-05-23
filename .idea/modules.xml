@@ -3,10 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BuyBuddyKit_Android.iml" filepath="$PROJECT_DIR$/BuyBuddyKit_Android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/BuyBuddyKit_Android.iml" filepath="$PROJECT_DIR$/BuyBuddyKit_Android.iml" />
       <module fileurl="file://$PROJECT_DIR$/buybuddy_sdk/buybuddy_sdk.iml" filepath="$PROJECT_DIR$/buybuddy_sdk/buybuddy_sdk.iml" />
-      <module fileurl="file://$PROJECT_DIR$/buybuddy_sdk/buybuddy_sdk.iml" filepath="$PROJECT_DIR$/buybuddy_sdk/buybuddy_sdk.iml" />
-      <module fileurl="file://$PROJECT_DIR$/sampledelegateapp/sampledelegateapp.iml" filepath="$PROJECT_DIR$/sampledelegateapp/sampledelegateapp.iml" />
       <module fileurl="file://$PROJECT_DIR$/sampledelegateapp/sampledelegateapp.iml" filepath="$PROJECT_DIR$/sampledelegateapp/sampledelegateapp.iml" />
     </modules>
   </component>

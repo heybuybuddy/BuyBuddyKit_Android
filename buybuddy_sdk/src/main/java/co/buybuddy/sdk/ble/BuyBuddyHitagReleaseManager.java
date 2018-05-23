@@ -17,6 +17,8 @@ public final class BuyBuddyHitagReleaseManager {
     private BuyBuddyHitagReleaserDelegate delegate;
     private static Intent serviceIntent = new Intent(BuyBuddy.getContext(), BuyBuddyHitagReleaser.class);
 
+    private boolean didFinish = false;
+
     public BuyBuddyHitagReleaseManager() {
         EventBus.getDefault().register(this);
 
@@ -29,6 +31,7 @@ public final class BuyBuddyHitagReleaseManager {
 
         serviceIntent.removeExtra("is_retry");
         serviceIntent.putExtra("orderId", orderId);
+        didFinish = false;
 
         BuyBuddy.getContext().startService(serviceIntent);
 
@@ -41,6 +44,7 @@ public final class BuyBuddyHitagReleaseManager {
 
         serviceIntent.removeExtra("orderId");
         serviceIntent.putExtra("is_retry", true);
+        didFinish = false;
 
         BuyBuddy.getContext().startService(serviceIntent);
 
@@ -58,7 +62,7 @@ public final class BuyBuddyHitagReleaseManager {
         return this;
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onHitagEventFromService(HitagEventFromService hitagEvent) {
         if (delegate != null) {
 
@@ -72,7 +76,11 @@ public final class BuyBuddyHitagReleaseManager {
                     break;
 
                 case 2:
-                    delegate.didFinish();
+                    if (!didFinish) {
+                        didFinish = true;
+                        delegate.didFinish();
+                    }
+
                     BuyBuddy.getContext().stopService(serviceIntent);
                     break;
 
@@ -82,13 +90,13 @@ public final class BuyBuddyHitagReleaseManager {
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onBleScanException(BluetoothLeCompatException exception) {
         if (delegate != null)
             delegate.onExceptionThrown(exception);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onSaleException(HitagReleaserException exception) {
         if (delegate != null)
             delegate.onExceptionThrown(exception);
