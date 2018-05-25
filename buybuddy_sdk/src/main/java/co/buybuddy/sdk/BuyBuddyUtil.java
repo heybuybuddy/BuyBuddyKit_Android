@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import co.buybuddy.android.BuildConfig;
+
 /**
  * Created by Furkan Ençkü on 6/12/17.
  * This code written by buybuddy Android Team
@@ -31,8 +33,11 @@ public final class BuyBuddyUtil {
 
     static final long HITAG_MANAGER_ALARM_INTERVAL = 60000;
     public static final long HITAG_BLE_SCAN_INTERVAL = 800;
-    private static boolean DEBUG = true;
+    private volatile static boolean DEBUG = false;
 
+    public static String getSDKVersion() {
+        return BuildConfig.VERSION_NAME;
+    }
 
      public static void printD(String tag, String message){
         if (DEBUG && message != null && tag != null){
