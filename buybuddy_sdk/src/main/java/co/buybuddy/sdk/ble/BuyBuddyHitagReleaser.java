@@ -59,8 +59,6 @@ import static android.bluetooth.BluetoothProfile.STATE_DISCONNECTED;
 
 public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
 
-
-    private static long HITAG_DEFAULT_SCAN_TIMEOUT = 10000L;
     BluetoothAdapter mBluetoothAdapter;
     BluetoothManager mBluetoothManager;
     private BluetoothLeScannerCompat mBleScanner;
@@ -140,7 +138,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
             scanRestartCount++;
 
-            if (scanRestartCount > 2) {
+            if (scanRestartCount > 1) {
                 stopScanning();
 
                 for (String hitagId : tryingDevices) {
@@ -159,7 +157,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
             } else {
                 BuyBuddyUtil.printD("*x*", " Bulunan cihaz sayısı : " + foundHitags.size());
-                notFoundHitagHandler.postDelayed(this, 15000);
+                notFoundHitagHandler.postDelayed(this, 13500);
             }
         }
     };
