@@ -59,8 +59,6 @@ import static android.bluetooth.BluetoothProfile.STATE_DISCONNECTED;
 
 public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delegate {
 
-
-    private static long HITAG_DEFAULT_SCAN_TIMEOUT = 10000L;
     BluetoothAdapter mBluetoothAdapter;
     BluetoothManager mBluetoothManager;
     private BluetoothLeScannerCompat mBleScanner;
@@ -78,7 +76,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
     HashSet<String> foundHitags;
     int scanRestartCount = 0;
 
-    HashMap<String, Hitag> deviceMap;
+    volatile HashMap<String, Hitag> deviceMap;
     HashMap<String, BluetoothDevice> hitagRestoredDevice;
 
 
@@ -91,7 +89,15 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
         @Override
         public void run() {
 
+            if (willOpenDevices.size() == 0 && tryingDevices.size() == 0) {
+                stopScanning();
+                EventBus.getDefault().post(new HitagEventFromService(null, null).setEventType(2));
+                EventBus.getDefault().unregister(BuyBuddyHitagReleaser.this);
+                stopSelf();
+            }
+
             if (willOpenDevices.size() + tryingDevices.size() + failedDevices.size() == 0) {
+                EventBus.getDefault().unregister(BuyBuddyHitagReleaser.this);
                 stopSelf();
             }
 
@@ -132,7 +138,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
             scanRestartCount++;
 
-            if (scanRestartCount > 2) {
+            if (scanRestartCount > 1) {
                 stopScanning();
 
                 for (String hitagId : tryingDevices) {
@@ -151,7 +157,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
             } else {
                 BuyBuddyUtil.printD("*x*", " Bulunan cihaz sayısı : " + foundHitags.size());
-                notFoundHitagHandler.postDelayed(this, 15000);
+                notFoundHitagHandler.postDelayed(this, 13500);
             }
         }
     };
@@ -182,8 +188,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
         try {
             mBleScanner.isBleScannable(mBluetoothAdapter);
-        } catch (BluetoothLeCompatException ex) {
-            EventBus.getDefault().post(ex);
+        } catch (BluetoothLeCompatException ex) {           EventBus.getDefault().post(ex);
             EventBus.getDefault().unregister(this);
             stopSelf();
             return false;
@@ -318,24 +323,19 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
     private void startScanning() {
         mBleScanner.stopScan(mBluetoothAdapter, mScanCallback);
 
-        /*final int version = Build.VERSION.SDK_INT;
-        if (version >= Build.VERSION_CODES.LOLLIPOP) {
-            mBleScanner.startScan(mBluetoothAdapter, null, new ScanSettingsCompat.Builder()
-                    .setScanMode(CALLBACK_TYPE_ALL_MATCHES)
-                    .setReportDelay(0).build(), mScanCallback);
-        }
-        else {
-            mBleScanner.startScan(mBluetoothAdapter, mScanCallback);
-        }*/
-
-
-
         startService(new Intent(this, HitagScanService.class));
         EventBus.getDefault().register(this);
     }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onHitagEventFromService(final CollectedHitagTS hitag) {
+
+        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(hitag.getDevice().getAddress());
+        if (device != null) {
+            hitag.setDevice(device);
+        } else {
+            return;
+        }
 
         if (willOpenDevices.size() == 0 && tryingDevices.size() == 0) {
             stopScanning();
@@ -364,11 +364,17 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                     tryCountForDevices.put(hitag.getId(), 0);
                 }
 
-                Hitag willConnectHitag = new Hitag(BuyBuddyHitagReleaser.this, hitag.getDevice())
-                        .setHitagDelegate(BuyBuddyHitagReleaser.this)
-                        .setHitagId(hitag.getId());
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Hitag willConnectHitag = new Hitag(BuyBuddyHitagReleaser.this, hitag.getDevice())
+                                .setHitagDelegate(BuyBuddyHitagReleaser.this)
+                                .setHitagId(hitag.getId());
 
-                deviceMap.put(hitag.getId(), willConnectHitag);
+                        deviceMap.put(hitag.getId(), willConnectHitag);
+                    }
+                }).start();
+
 
                 BuyBuddyUtil.printD(TAG, "Hitag Id: " + hitag.getId() + " will connect");
             }
@@ -503,11 +509,13 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
     }
 
     @Override
-    public void onCharacteristicRead(final String hitagId, Hitag.Characteristic chars, byte[] value) {
+    public void onCharacteristicRead(final String hitagId, Hitag.Characteristic chars, final byte[] value) {
 
         synchronized (deviceMap.get(hitagId)) {
             if (deviceMap.get(hitagId).getConnectionState() == STATE_CONNECTED
                     && tryingDevices.contains(hitagId) && chars == Hitag.Characteristic.PASSWORD_VERSION) {
+
+                BuyBuddyUtil.printD(TAG,"tt- 4p0");
 
                 BuyBuddyUtil.printD(TAG, Integer.parseInt(BuyBuddyBleUtils.printHexBinary(value), 16) + "");
 
@@ -518,7 +526,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
 
                                 if (deviceMap.get(hitagId) != null) {
 
-                                    BuyBuddyUtil.printD(TAG,"tt- 4p");
+                                    BuyBuddyUtil.printD(TAG,"tt- 4p1");
                                     deviceMap.get(hitagId).releaseHitag(response.getData());
 
                                 } else {
@@ -547,6 +555,7 @@ public final class BuyBuddyHitagReleaser extends Service implements Hitag.Delega
                                 }
                             }
                         });
+
             }
         }
     }

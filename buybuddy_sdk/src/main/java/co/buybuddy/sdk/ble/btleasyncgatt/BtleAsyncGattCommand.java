@@ -8,7 +8,7 @@ import android.bluetooth.BluetoothGattDescriptor;
  */
 
 
-public class BtleAsyncGattCommand {
+class BtleAsyncGattCommand {
 
     enum CommandType {
         WRITE_DESCRIPTOR,
@@ -20,24 +20,24 @@ public class BtleAsyncGattCommand {
     private BluetoothGattCharacteristic characteristic = null;
     private BluetoothGattDescriptor descriptor = null;
 
-    public CommandType getCommandType() {
+    CommandType getCommandType() {
         return commandType;
     }
 
-    public BluetoothGattCharacteristic getCharacteristic() {
+    BluetoothGattCharacteristic getCharacteristic() {
         return characteristic;
     }
 
-    public BluetoothGattDescriptor getDescriptor() {
+    BluetoothGattDescriptor getDescriptor() {
         return descriptor;
     }
 
-    public BtleAsyncGattCommand(CommandType commandType, BluetoothGattCharacteristic characteristic) {
+    BtleAsyncGattCommand(CommandType commandType, BluetoothGattCharacteristic characteristic) {
         this.commandType = commandType;
         this.characteristic = characteristic;
     }
 
-    public BtleAsyncGattCommand(BluetoothGattDescriptor descriptor) {
+    BtleAsyncGattCommand(BluetoothGattDescriptor descriptor) {
         this.commandType = CommandType.WRITE_DESCRIPTOR;
         this.descriptor = descriptor;
     }

@@ -29,13 +29,14 @@ public final class BuyBuddyShoppingCartManager {
     private ArrayList<String> hitagIdArrayList = new ArrayList<>();
 
     public ArrayList<BuyBuddyItem> getItems() {
+
         if (basket != null) {
 
-          ArrayList<BuyBuddyItem> tempArray = new ArrayList<>();
+            ArrayList<BuyBuddyItem> tempArray = new ArrayList<>();
 
-          for(String id: hitagIdArrayList) {
-            tempArray.add(basket.get(id));
-          }
+            for(String id: hitagIdArrayList) {
+               tempArray.add(basket.get(id));
+            }
 
           return tempArray;
         }

@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 
@@ -81,7 +82,13 @@ class Hitag {
         connectionTimeoutHandler = new Handler(handlerThread.getLooper());
         notifyTimeoutHandler = new Handler(handlerThread.getLooper());
 
-        hitagGatt = device.connectGatt(ctx, false, mCallBack);
+        if (Build.VERSION.SDK_INT >= 23) {
+            hitagGatt = device.connectGatt(ctx, false, mCallBack, BluetoothDevice.TRANSPORT_LE);
+        } else {
+            hitagGatt = device.connectGatt(ctx, false, mCallBack);
+        }
+
+
         htgCharacters = new HashMap<>();
 
         connectionTimeoutHandler.postDelayed(timeOutRunnable, TIMEOUT_CONNECTING);
@@ -164,6 +171,11 @@ class Hitag {
                 e.printStackTrace();
             }
 
+            if (manager != null) {
+                if (!manager.isInterrupted())
+                    manager.cancel();
+            }
+
             hitagGatt.disconnect();
             handlerThread.quitSafely();
         }
@@ -180,8 +192,6 @@ class Hitag {
 
             BluetoothGattCharacteristic characteristic = htgCharacters.get(PASSWORD);
             characteristic.setValue(BuyBuddyBleUtils.parseHexBinary(password.getFirst()));
-
-            boolean wrote = hitagGatt.writeCharacteristic(htgCharacters.get(PASSWORD));
 
             manager.writeCharacteristic(characteristic);
 
@@ -232,11 +242,18 @@ class Hitag {
                 hitagGatt.discoverServices();
             } else if (newState == STATE_DISCONNECTED){
                 if (hitagGatt != null) {
+                    connectionTimeoutHandler.removeCallbacks(timeOutRunnable);
+                    notifyTimeoutHandler.removeCallbacks(notifyRunnable);
                     try {
                         hitagGatt.close();
                     }catch (Exception e) {
                         BuyBuddyUtil.printD(TAG, "tt- 10 " + e.getLocalizedMessage());
                     }
+                }
+
+                if (manager != null) {
+                    if (!manager.isInterrupted())
+                        manager.cancel();
                 }
             }
         }

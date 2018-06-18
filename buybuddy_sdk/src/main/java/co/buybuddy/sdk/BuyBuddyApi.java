@@ -12,6 +12,7 @@ import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import co.buybuddy.sdk.responses.OrderDelegateDetail;
 import co.buybuddy.sdk.model.BuyBuddyItem;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.CertificatePinner;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -48,10 +50,20 @@ public final class BuyBuddyApi {
     private MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     final OkHttpClient client;
     private final BuyBuddyAuthorization authorization;
+    private CertificatePinner certificatePinner;
 
     BuyBuddyApi(){
         authorization = new BuyBuddyAuthorization();
+
+        certificatePinner = new CertificatePinner.Builder()
+                .add("buybuddy.co", "sha256/Pr78qk12sCmHlBm9p2NC8k9h3qN0q+Yx5/Zf8QwCP7I=")
+                .add("buybuddy.co", "sha256/JSMzqOOrtyOT1kmau6zKhgT676hGgczD5VMdRMyJZFA=")
+                .add("buybuddy.co", "sha256/++MBgDH5WGvL9Bcn5Be30cRcL0f5O+NyoXuWtQdX1aI=")
+                .add("buybuddy.co", "sha256/KwccWaCgrnaw6tsrrSO61FgLacNgG2MMLq8GE6+oP5I=")
+                .build();
+
         client = new OkHttpClient.Builder()
+                .certificatePinner(certificatePinner)
                 .addInterceptor(authorization)
                 .build();
     }
@@ -189,9 +201,20 @@ public final class BuyBuddyApi {
                 break;
         }
 
-        OkHttpClient client = new OkHttpClient.Builder().build();
+        OkHttpClient client = new OkHttpClient.Builder()
+                                    .certificatePinner(certificatePinner)
+                                    .build();
 
         Response response = client.newCall(builder.build()).execute();
+
+        for (Certificate certificate : response.handshake().peerCertificates()) {
+            try {
+                System.out.println(CertificatePinner.pin(certificate));
+            }catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
         String responseStr = null;
 
         if (response.body() != null){
@@ -320,13 +343,14 @@ public final class BuyBuddyApi {
             call(Address.class,
                 BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.UpdateUserAddress,
                         new ParameterMap().add("user_id", BuyBuddyTokenManager.getCurrent().getUserId())
-                                          .add("address",new ParameterMap().add("name", address.getTitle())
-                                          .add("street", address.getStreet())
-                                          .add("region", address.getRegion())
-                                          .add("city",address.getCity())
-                                          .add("zip",address.getZipcode())
-                                          .add("address",address.getDefinition())
-                                          .add("country",address.getCountry()).getMap())),
+                                          .add("address",new ParameterMap()
+                                                            .add("name", address.getTitle())
+                                                            .add("street", address.getStreet())
+                                                            .add("region", address.getRegion())
+                                                            .add("city",address.getCity())
+                                                            .add("zip",address.getZipcode())
+                                                            .add("address",address.getDefinition())
+                                                            .add("country",address.getCountry()).getMap())),
                 delegate);
         }
     }
