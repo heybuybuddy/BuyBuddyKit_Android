@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.net.ConnectivityManagerCompat;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -55,6 +56,8 @@ public final class BuyBuddyApi {
     BuyBuddyApi(){
         authorization = new BuyBuddyAuthorization();
 
+
+        // Renewed until 08/2019
         certificatePinner = new CertificatePinner.Builder()
                 .add("buybuddy.co", "sha256/Pr78qk12sCmHlBm9p2NC8k9h3qN0q+Yx5/Zf8QwCP7I=")
                 .add("buybuddy.co", "sha256/JSMzqOOrtyOT1kmau6zKhgT676hGgczD5VMdRMyJZFA=")
@@ -430,6 +433,8 @@ public final class BuyBuddyApi {
     BuyBuddyApiObject<BuyBuddyJwt> getJwt(String token) throws BuyBuddyApiError, IOException {
         return call(BuyBuddyJwt.class,
                     BuyBuddyEndpoint.endPointCreator(BuyBuddyEndpoint.Jwt, new ParameterMap().add("passphrase_submission", new ParameterMap()
-                                                                                                                                    .add("passkey", token).getMap())));
+                                                                                                                                    .add("passkey", token)
+                                                                                                                                    .add("bundle_identifier", BuyBuddy.getContext().getPackageName())
+                            .getMap())));
     }
 }
