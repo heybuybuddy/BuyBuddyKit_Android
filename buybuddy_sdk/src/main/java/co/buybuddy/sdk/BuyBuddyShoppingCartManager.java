@@ -70,7 +70,6 @@ public final class BuyBuddyShoppingCartManager {
         if (basket != null) {
             hitagIdArrayList.add(item.getHitagId());
             basket.put(item.getHitagId(),item);
-            hitagIdArrayList.add(item.getHitagId());
 
             updateBasket(delegate);
             return true;
