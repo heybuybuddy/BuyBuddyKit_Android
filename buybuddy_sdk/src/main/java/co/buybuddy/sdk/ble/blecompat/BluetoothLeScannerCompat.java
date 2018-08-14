@@ -35,6 +35,8 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.buybuddy.sdk.BuyBuddyUtil;
+
 
 public class BluetoothLeScannerCompat {
 
@@ -203,13 +205,17 @@ public class BluetoothLeScannerCompat {
         @SuppressWarnings("deprecation")
         @Override
         public void stopScan(BluetoothAdapter adapter, ScanCallbackCompat callbackCompat) {
-            API18ScanCallback callback = callbackMap.remove(callbackCompat);
-            if (callback == null) {
-                return;
-            }
+            try {
+                API18ScanCallback callback = callbackMap.remove(callbackCompat);
+                if (callback == null) {
+                    return;
+                }
 
-            if (adapter != null)
-                adapter.stopLeScan(callback);
+                if (adapter != null)
+                    adapter.stopLeScan(callback);
+            }catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         private API18ScanCallback registerCallback(List<ScanFilterCompat> filters, ScanCallbackCompat callbackCompat) {
@@ -300,7 +306,10 @@ public class BluetoothLeScannerCompat {
 
     public void isBleScannable(BluetoothAdapter adapter) throws BluetoothLeCompatException {
 
+        BuyBuddyUtil.getSP().getBoolean(BuyBuddyUtil.BLE_CAPABILITY, false);
+
         PackageManager pm = context.getPackageManager();
+        // TODO When service initializing we can ask this feature just once.
         boolean hasBLE = pm.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
 
         if (adapter == null) {

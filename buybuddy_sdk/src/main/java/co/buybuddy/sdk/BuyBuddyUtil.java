@@ -20,6 +20,8 @@ public final class BuyBuddyUtil {
     static final String USER_UUID = "uuid";
     static final String API_KEY = "api_key";
     static final String API_USER = "api_user";
+    public static final String BLE_CAPABILITY = "ble_capability";
+    public static final String BLE_CAPABILITY_ASKED = "ble_capability_asked";
 
     public static String getFromSP(String key){
 

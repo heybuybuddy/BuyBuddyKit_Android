@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
@@ -20,6 +21,12 @@ import static android.bluetooth.BluetoothAdapter.STATE_TURNING_ON;
 public class BuyBuddyBroadCastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
+
+        if (!(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)){
+            // BuyBuddyScanner can not work properly under android version 4.3
+            return;
+        }
+
         if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
             context.startService(new Intent(context, HitagScanService.class));
         }

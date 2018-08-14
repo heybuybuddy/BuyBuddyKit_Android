@@ -3,6 +3,7 @@ package co.buybuddy.sdk;
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
+import android.os.Build;
 import android.support.annotation.NonNull;
 
 import org.greenrobot.eventbus.EventBus;
@@ -72,6 +73,11 @@ public class BuyBuddy {
             EventBus.builder().throwSubscriberException(false).installDefaultEventBus();
         }catch (RuntimeException ex) {
             ex.printStackTrace();
+        }
+
+        if (!(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)){
+            // BuyBuddyScanner can not work properly under android version 4.3
+            return;
         }
 
         mContext.startService(new Intent(getContext(), HitagScanService.class));
