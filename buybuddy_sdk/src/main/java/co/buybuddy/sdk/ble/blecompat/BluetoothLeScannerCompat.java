@@ -15,6 +15,7 @@
  */
 package co.buybuddy.sdk.ble.blecompat;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -35,6 +36,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.buybuddy.sdk.BuyBuddy;
 import co.buybuddy.sdk.BuyBuddyUtil;
 
 
@@ -303,14 +305,20 @@ public class BluetoothLeScannerCompat {
         }
     }
 
-
+    @SuppressLint("ApplySharedPref")
     public void isBleScannable(BluetoothAdapter adapter) throws BluetoothLeCompatException {
 
-        BuyBuddyUtil.getSP().getBoolean(BuyBuddyUtil.BLE_CAPABILITY, false);
+        boolean hasBLE;
+        boolean asked = BuyBuddyUtil.getSP().getBoolean(BuyBuddyUtil.BLE_CAPABILITY_ASKED, false);
 
-        PackageManager pm = context.getPackageManager();
-        // TODO When service initializing we can ask this feature just once.
-        boolean hasBLE = pm.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+        if (!asked) {
+            PackageManager pm = context.getPackageManager();
+            hasBLE = pm.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+            BuyBuddyUtil.getSP().edit().putBoolean(BuyBuddyUtil.BLE_CAPABILITY_ASKED, true).commit();
+            BuyBuddyUtil.getSP().edit().putBoolean(BuyBuddyUtil.BLE_CAPABILITY, hasBLE).commit();
+        } else {
+            hasBLE = BuyBuddyUtil.getSP().getBoolean(BuyBuddyUtil.BLE_CAPABILITY, false);
+        }
 
         if (adapter == null) {
             throw new BluetoothLeCompatException(BluetoothLeCompatException.BLUETOOTH_NOT_AVAILABLE);
