@@ -28,8 +28,6 @@ public final class BuyBuddyItem implements Serializable {
     private BuyBuddyStore store;
     private HashMap<String, SizeImageMetaData> others;
 
-
-
     public BuyBuddyItem setAppliedCampaingIds(int[] appliedCampaingIds) {
         this.appliedCampaingIds = appliedCampaingIds;
         return this;

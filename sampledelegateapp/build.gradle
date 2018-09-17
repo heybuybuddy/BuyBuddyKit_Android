@@ -5,7 +5,7 @@ android {
     buildToolsVersion '27.0.3'
 
     defaultConfig {
-        applicationId "co.buybuddy.sampledelegateapp"
+        applicationId "com.softtech.parakod"
         minSdkVersion 18
         targetSdkVersion 27
         versionCode 1

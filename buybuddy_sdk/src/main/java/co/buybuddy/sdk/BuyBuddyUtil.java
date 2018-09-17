@@ -35,7 +35,7 @@ public final class BuyBuddyUtil {
 
     static final long HITAG_MANAGER_ALARM_INTERVAL = 60000;
     public static final long HITAG_BLE_SCAN_INTERVAL = 800;
-    private volatile static boolean DEBUG = false;
+    private volatile static boolean DEBUG = true;
 
     public static String getSDKVersion() {
         return BuildConfig.VERSION_NAME;

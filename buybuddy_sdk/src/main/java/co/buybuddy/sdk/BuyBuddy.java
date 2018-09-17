@@ -1,5 +1,6 @@
 package co.buybuddy.sdk;
 
+import android.arch.lifecycle.AndroidViewModel;
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
@@ -78,9 +79,9 @@ public class BuyBuddy {
         if (!(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)){
             // BuyBuddyScanner can not work properly under android version 4.3
             return;
+        }else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            mContext.startService(new Intent(getContext(), HitagScanService.class));
+            mContext.stopService(new Intent(getContext(), BuyBuddyHitagReleaser.class));
         }
-
-        mContext.startService(new Intent(getContext(), HitagScanService.class));
-        mContext.stopService(new Intent(getContext(), BuyBuddyHitagReleaser.class));
     }
 }

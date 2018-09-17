@@ -93,6 +93,8 @@ final public class HitagScanService extends Service  {
             public void onScanResult(int callbackType, ScanResultCompat result) {
                 super.onScanResult(callbackType, result);
 
+                BuyBuddyUtil.printD(TAG, "scanResult");
+
                 if (result.getScanRecord() != null) {
 
                     CollectedHitagTS hitag = CollectedHitagTS.getHitag(result.getDevice(),
@@ -196,14 +198,16 @@ final public class HitagScanService extends Service  {
 
      void startAlarmManager() {
 
-        hitagAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, HitagScanService.class);
-        PendingIntent pintent = PendingIntent.getService(this, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        hitagAlarm.setInexactRepeating(AlarmManager.RTC_WAKEUP,
-                                       (System.currentTimeMillis() + BuyBuddyUtil.HITAG_MANAGER_ALARM_INTERVAL),
-                                       BuyBuddyUtil.HITAG_MANAGER_ALARM_INTERVAL,
-                                       pintent);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            hitagAlarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            Intent intent = new Intent(this, HitagScanService.class);
+            PendingIntent pintent = PendingIntent.getService(this, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+            hitagAlarm.setInexactRepeating(AlarmManager.RTC_WAKEUP,
+                    (System.currentTimeMillis() + BuyBuddyUtil.HITAG_MANAGER_ALARM_INTERVAL),
+                    BuyBuddyUtil.HITAG_MANAGER_ALARM_INTERVAL,
+                    pintent);
+        }
     }
 
     private void doReport() {

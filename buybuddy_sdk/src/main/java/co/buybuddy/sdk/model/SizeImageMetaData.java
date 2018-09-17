@@ -16,9 +16,7 @@ public class SizeImageMetaData implements Serializable {
     public String[] getSizes(){
         return sizes;
     }
-
     public String[] getImages(){
         return images;
     }
-
 }

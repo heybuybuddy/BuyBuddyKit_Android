@@ -69,8 +69,10 @@ public class MainActivity extends AppCompatActivity {
         manager = new BuyBuddyHitagReleaseManager();
         BuyBuddy.getInstance().api
                 .setSandBoxMode(true)
-                .setPublicAuthParameters("b2Z1cmthbmFiaTEyMzY4OTMxMjMxZmF1cmw5NzEyMzQxbWFkeMOnZMOnZA==", "ANDROIDTEST")
-                .setUserToken("dLgOo29JTrqafHVp/8VZYcBeqiWua0zHn888OzFsZcv2+VZ3XjFACbfgihGllovVO3D/W17wRXqwL1EFV2Gpaw==");
+                //.setPublicAuthParameters("b2Z1cmthbmFiaTEyMzY4OTMxMjMxZmF1cmw5NzEyMzQxbWFkeMOnZMOnZA==", "ANDROIDTEST")
+                .setUserToken("dA7p50pWR/qNIMAVymvRT2hvsw/obkragdDfJ/G1ao/ET5WWsxNOLID/tjVgA8HLlHQq8UpTSAOnZJyMyGRLyQ==");
+
+
 
         btnCreateOrder.setVisibility(GONE);
 
