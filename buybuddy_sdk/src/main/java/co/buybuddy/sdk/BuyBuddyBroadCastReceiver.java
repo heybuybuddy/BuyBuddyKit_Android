@@ -25,7 +25,7 @@ public class BuyBuddyBroadCastReceiver extends BroadcastReceiver {
         if (!(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)){
             // BuyBuddyScanner can not work properly under android version 4.3
             return;
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             return;
         }
 
